@@ -2,7 +2,7 @@
 
 **Parameters**
 
-- **Licensor**: [Your Name or Organization]
+- **Licensor**: [RhythmKnights]
 - **Licensed Work**: This repository and its contents, including source code, assets, and documentation.
 - **Additional Use Grant**: Personal, non-commercial use is permitted.
 - **Change Date**: May 21, 2029
@@ -26,10 +26,15 @@ Effective on the date you receive a copy of the Licensed Work, and subject to th
 
 You may not use the Licensed Work for any **Prohibited Purpose**, which includes:
 
-- Any use that is commercial in nature, such as offering the Licensed Work or any derivative work as a paid service, software-as-a-service (SaaS), or as part of a for-profit business model.
-- Any internal commercial use by an organization.
+- **Commercial Use:** Any use that is commercial in nature, including offering the Licensed Work or any derivative work as a paid service, software-as-a-service (SaaS), or as part of a for-profit business model.
 
-For clarity: **personal, academic, and non-commercial open-source use is permitted**.
+- **Unauthorized Deployment:** Operating the Licensed Work on a live production platform or server without a separate, purchased license from an authorized vendor. Authorized vendors are explicitly: PolyMart and SpigotMC under the RhythmKnights brand.
+
+- **License Circumvention:** Creating derivative works with the intention of removing or altering the terms and protections of this license to result in an open-source version without the original restrictions.
+
+- **Internal Commercial Use:** Use by any organization for internal commercial purposes without obtaining a commercial license.
+
+For clarity: **personal, academic, and non-commercial open-source use is permitted provided that the resultant code is not used in a live production environment without a valid, purchased license.**.
 
 ## Change Date and Conversion
 
