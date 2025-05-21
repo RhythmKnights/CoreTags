@@ -1,2 +1,2 @@
 # CoreTags
-Powerful tags plugin for Minecraft: Java Edition, built on CoreFramework, powered by CoreAPI.
+Powerful tags plugin for Minecraft: Java Edition, built on [CoreFramework](https://github.com/RhythmKnights/CoreFramework), powered by [CoreAPI](https://github.com/RhythmKnights/CoreAPI).
