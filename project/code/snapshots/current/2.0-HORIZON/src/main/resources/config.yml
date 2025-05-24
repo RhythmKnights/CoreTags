@@ -1,0 +1,92 @@
+# CoreTags Configuration
+# Version: 2.0-HORIZON
+# Author: RhythmKnights
+
+settings:
+  # System Settings
+  system:
+    # Debug Settings
+    debug: false #true = show logs to console
+    
+    # Tag Economy Settings
+    economy:
+      enabled: false
+      default-cost: 0
+      convert-cost: true #true = convert costs of -1 or 0 to value in 'settings.system.conditions.free' in global.yml, false = always show the number 0
+    language: GLOBAL # valid values are GLOBAL or LANGUAGE-CONTINENT (such as EN-US, JA-JP, or ES-ES. any combination of capitalization should be accepted such as en-US, En-US, or EN-US)
+    # determines which lang file to use by default and as the fallback if lang file is corrupt or missing. should fire a warning if specific entries are missing or corrupted to the console during intialization/reload
+    
+    date-time-format: # info: used for readouts and calculation of times for limited availability tags
+      timezone:
+        server: 'EST' # timezone to base the actual start/end times relative to the server's timezone
+                    # The value must be in continent/city format, such as 'America/New_York', an accepted abbreviation like EST/MST/CST/PST, or a GMT/UTC time with and offset like GMT-5.
+        display: 
+          type: 'CODE' 
+          # format used in {timezone} values are NAME, CODE, UTC-OFFSET, GMT-OFFSET
+          # NAME results in something like 'America/New York'
+          # CODE results in something like 'PST' or 'EST'
+          # UTC-OFFSET results in something like 'UTC+5'
+          # GMT-OFFSET results in something like 'GMT-5'
+          format: '{continent}<dark_grey>•</dark_grey>{city}'
+      
+      format:
+       display: STANDARD # valid entries are STANDARD or EXPANDED
+       standard: '<grey>{day.dd}</grey><dark_grey>•</dark_grey><grey>{month.mm}</grey><dark_grey>•</dark_grey><grey>{year.yyyy}</grey> <grey>{hour.h}</grey><dark_grey>:</dark_grey><grey>{minute}{am.pm}</grey>'
+       # ^ this example should result in something like '12•31•2025 2:01PM'
+       expanded: '<grey>{weekday.text}</grey><dark_grey>,</dark_grey> <grey>{month.text}</grey> <grey>{day.text}</grey><dark_grey>,</dark_grey> <grey>{year.yyyy}</grey> <grey>at</grey> <grey>{hour.h}</grey><dark_grey>:</dark_grey><grey>{minute}{am.pm}</grey>'
+       # ^ this example should result in something like 'Saturday, May 8th at 4:05PM'
+      # should accept <color> and &f style codes via adventure api, otherwise, default to white, non-italic, non-bold
+      # the first letter of text day and text month should be capitalized with the rest lowercase, AM/PM should default to full caps
+      # if user wants full caps or full lowercase for a particular entry, they should append .caps or .lc (lowercase)
+      # so for example if they wanted the {day.text} in full caps they would do {day.text.caps} or if they wanted the {am.pm} in all lowercase
+      # they would do {am.pm.lc}
+      # 
+      # {am.pm} shows meridiem indicator AM or PM matching the current cycle
+      # {minute} shows numerical day WITH a preceding zero for values under 10
+      # {hour.h} shows numerical hour without a preceding zero for values under 10
+      # {hour.hh} shows numberical hour WITH a preceding zero for values under 10 
+      # {day.d} shows numerical day without a preceding zero for values under 10
+      # {day.dd} shows numberical day WITH a preceding zero for values under 10
+      # {day.text} shows numerical day without a preceding zero + proper text suffix, such as 8th / 3rd / 1st (default suffix is lowercase, can use .caps for all caps)
+      # {weekday.text} shows text-based day of the week (default is first letter capital, rest lowercase, unless appending .caps or .lc)
+      # {month.d} shows numerical month without a preceding zero for values under 10
+      # {month.dd} shows numerical month WITH a preceding zero for values under 10
+      # {month.text} shows text-based month (default is first letter capital, rest lowercase, unless appending .caps or .lc)
+      # {year.yy} shows a numerical 2-digit year
+      # {year.yyyy} shows a numerical 4-digit year
+      
+      localizer:
+        default-type: LOCAL # should the entries display the player's relative local time 'LOCAL' or the server's time zone 'SERVER'? 
+        player-toggle: true # should players be able to toggle the format between server time and local time in player settings?
+        suffix:
+          enabled: true # if true append the following to the date/time based on the relative type
+          display:
+            type: STATIC # valid values are STATIC or DYNAMIC
+            format:
+              static: '(LOCAL TIME)'
+              dynamic: '({timezone})'
+
+    modal:
+      default: CATEGORY # valid entries are CATEGORY or TAGS, if set to CATEGORY but below category is set to enabled: false, then default to TAGS as a fallback
+      category:
+        enabled: true # true = show category modal
+      tags:
+        default-tag: DEFAULT # pulled from tags.yml
+        sort-type: ALPHABETICAL # valid values are NUMBERED or ALPHABETICAL
+        favorites:
+          sort:
+            enabled: true
+            default-sort: SORTED # valid values are SORTED or UNSORTED (SORTED places a list of favorites at the front of the paginated list for that category in sort-type order, followed by non-favorites in the sort-type order. UNSORTED places all tags, both favorites and non-favorites into the list for that category in sort-type order)
+        category-sort-button: THEME # valid values are BASIC (shows the default material always) or THEME (use values for 'gui.layout.materials.category-sort-button-themed) in gui.yml
+        color-sort-button: THEME # valid values are BASIC (shows the default material always) or THEME (use values for 'gui.layout.materials.color-sort-button-themed) in gui.yml
+        close-on-activation: false # true = close the GUI after a player sets a tag as active
+        close-on-unlock: false # true = close the GUI after a player unlocks a tag
+        close-button-swap: true #true = replace the back button with the close button on the PARENT modal
+        close-button-cmd: '{gui.close}' # {gui.close} should close the window with normal Triumph methods, if a custom command is listed here like 'cp playermenu' then it should close the gui and run /cp playermenu immediately after, this can be multiple commands as list entries if desired
+
+        
+        
+      
+      
+  
+  

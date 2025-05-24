@@ -1,0 +1,86 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.rhythmknights'
+version = '2.0-HORIZON'
+description = 'Advanced tag system with GUI for player customization'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+    maven { url = 'https://libraries.minecraft.net/' }
+    maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+    maven { url = 'https://oss.sonatype.org/content/groups/public/' }
+    maven { url = 'https://jitpack.io' } // For VaultAPI
+    flatDir {
+        dirs 'libs' // For local CoreFramework and CoreAPI jars ONLY
+    }
+}
+
+dependencies {
+    // Bukkit API
+    compileOnly 'io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT'
+    
+    // CoreFramework - PROVIDES EVERYTHING (Adventure API + CoreAPI)
+    compileOnly name: 'CoreFramework-2.0-HORIZON', version: ''
+    compileOnly name: 'CoreAPI-2.0-HORIZON', version: ''
+    
+    // Hook dependencies - FROM MAVEN REPOS
+    compileOnly 'net.luckperms:api:5.4'
+    compileOnly 'me.clip:placeholderapi:2.11.6'
+    compileOnly 'com.github.MilkBowl:VaultAPI:1.7.1'
+    
+    // Annotations
+    compileOnly 'org.jetbrains:annotations:24.0.0'
+    
+    // Testing dependencies
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+}
+
+processResources {
+    filesMatching('plugin.yml') {
+        expand(
+            'version': version,
+            'description': project.description
+        )
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+    options.compilerArgs += ['-parameters']
+}
+
+javadoc {
+    options.encoding = 'UTF-8'
+    options.addStringOption('Xdoclint:none', '-quiet')
+    title = "CoreTags ${project.version}"
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    
+    manifest {
+        attributes(
+            'Implementation-Title': 'CoreTags',
+            'Implementation-Version': version,
+            'Built-By': System.properties['user.name']
+        )
+    }
+}
+
+test {
+    useJUnitPlatform()
+}

@@ -1,0 +1,57 @@
+# CoreTags Tags Configuration
+# Defines all available tags in the system
+  
+tags:
+  default: #special tag for the default a player should have, essentially a blank tag, this tag should NEVER be displayed in any tags lists
+    id: DEFAULT
+    name: '<grey>NONE</grey>'
+    display: '' # info: literally blank, not a space, just no entry at all
+    material:  # entry for posterity, cannot be selected
+      id: NAME_TAG
+      material-modifier: -1
+      custom-model-data: -1
+    fav-material: # entry for posterity, cannot be selected
+      id: NAME_TAG
+      material-modifier: -1
+      custom-model-data: 9288
+    permission: 'coretags.group.player'
+    node: -1  # entry for posterity, cannot be selected
+    color: MULTI
+    protected: true
+    lore:
+      - ''
+    sort-order: 0
+    availablity:
+      type: ALWAYS # info: ALWAYS = always available, TIMEFRAME = only available during the window listed from start and end. if invalid times are entered for start/end, then it should default to ALWAYS and warn the admin in console during startup or /coretags reload
+      timeframe: 
+        start: ''
+        end: ''
+    cost: -1
+  
+  cosmicstar:
+    id: COSMICSTAR # internal id, used when an admin runs /coretags admin <lock|unlock> <tagid> <player>
+    name: '<gold>Cosmic Star</gold>' # info: the name of the item as it appears when hovered on tagmodal
+    display: '<white>✭</white>' # info: this is the actual display that is shown when the placeholder %coretags_tag% is used
+    material:
+      id: NAME_TAG
+      material-modifier: -1
+      custom-model-data: -1
+    fav-material: # gui item icon when favorited
+      id: NAME_TAG
+      material-modifier: -1
+      custom-model-data: 9288
+    permission: 'coretags.tag.cosmicstar'
+    node: 'category.default'
+    color: MULTI
+    protected: false # true = players cannot purchase/unlock this tag from the tagmodal, it must be given through an admin command or plugin call
+    lore:
+      - '<grey>This is a test tag.</grey>' # used in lore and msgs under the {description} parameter
+      - ''
+    sort-order: 1 # info: sorted by this value if 'settings.system.config.modal.tags.sort-type' in config.yml is set to NUMBERED, if set to ALPHABETICAL then this value is ignored
+    availablity:
+      type: ALWAYS # info: ALWAYS = always available, TIMEFRAME = only available during the window listed from start and end. if invalid times are entered for start/end, then it should default to ALWAYS and warn the admin in console during startup or /coretags reload
+      timeframe: 
+        start: '12.01.2025-12:00AM' # actual start date and time, relative to server timezone, formatting based on the 'settings.system.date-time-format' settings in config.yml
+        end: '12.31.2025-11:59PM' # actual end date and time, relative to server timezone, formatting based on the 'settings.system.date-time-format' settings in config.yml
+    cost: 0 # info: amount to be debited from the player's vaultecobalance, if set to -1 or 0 this tag is free and should be unlocked by default if the user has the perms for the specific tag such as 'coretags.tag.cosmicstar' OR the category it falls under such as 'coretags.category.default' UNLESS the tag is listed as protected: true (then it shouldnt be awarded unless the player has the specific tag perm)
+    

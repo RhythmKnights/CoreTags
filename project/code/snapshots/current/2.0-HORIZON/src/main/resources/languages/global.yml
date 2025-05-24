@@ -1,0 +1,232 @@
+# CoreTags Global Language File
+# Contains all standardized text entries and messages
+
+settings:
+  system:
+    # Hook display names
+    hooks:
+      luckperms:
+        name: '<green>LuckPerms</green>'
+      playerdata:
+        name: '<gold>playerdata</gold>'
+      playerdata-path:
+        name: '<gold>/playerdata/</gold>'
+    
+    # UI elements
+    conditions:
+      confirm: '<green>CONFIRM</green>'
+      cancel: '<red>CANCEL</red>'
+      expired: '<dark_grey>EXPIRED</dark_grey>'
+      reset: '<red>RESET</red>'
+      active: '<gold>ACTIVE</gold>'
+      unlock: '<green>UNLOCK</green>'
+      unlocked: '<green>UNLOCKED</green>'
+      lock: '<red>LOCK</red>'
+      locked: '<red>LOCKED</red>'
+      protected: '<dark_purple>PROTECTED</dark_purple>'
+      favorite: '<aqua>FAVORITE</aqua>'
+      favorited: '<aqua>FAVORITED</aqua>'
+      free: '<green>FREE</green>'
+      sorted: '<grey>SORTED</grey>'
+      unsorted: '<grey>UNSORTED</grey>'
+    
+    colors:
+      all:
+        text: '<gold>ALL</gold>'
+      multi:
+        text: '<blue>M</blue><green>U</green><yellow>L</yellow><red>T</red><light_purple>I</light_purple>'
+      red:
+        text: '<red>RED</red>'
+      orange:
+        text: '<#e06101>ORANGE</#e06101>'
+      yellow:
+        text: '<yellow>YELLOW</yellow>'
+      green:
+        text: '<green>GREEN</green>'
+      blue:
+        text: '<blue>BLUE</blue>'
+      purple:
+        text: '<dark_purple>PURPLE</dark_purple>'
+      pink:
+        text: '<#d5658f>PINK</#d5658f>'
+      brown:
+        text: '<#603c20>BROWN</#603c20>'
+      grey:
+        text: '<grey>GREY</grey>'
+      black:
+        text: '<dark_grey>BLACK</dark_grey>'
+      white:
+        text: '<white>WHITE</white>'
+        
+    controls:
+      chat:
+        leftclick: '<white>⸶</white> <#2ECC71>ʟᴇꜰᴛ ᴄʟɪᴄᴋ</#2ECC71>'
+        rightclick: '<white>⸷</white> <#2ECC71>ʀɪɢʜᴛ ᴄʟɪᴄᴋ</#2ECC71>'
+        shiftleftclick: '<#2ECC71>ꜱʜɪꜰᴛ</#2ECC71> <grey>+</grey> <white>⸶</white> <#2ECC71>ʟᴇꜰᴛ ᴄʟɪᴄᴋ</#2ECC71>'
+        shiftrightclick: '<#2ECC71>ꜱʜɪꜰᴛ</#2ECC71> <grey>+</grey> <white>⸷</white> <#2ECC71>ʀɪɢʜᴛ ᴄʟɪᴄᴋ</#2ECC71>'
+      gui:
+        leftclick: '<grey>⏵</grey> <white>⸶</white> <#2ECC71>ʟᴇꜰᴛ ᴄʟɪᴄᴋ</#2ECC71> • {setactive}'
+        rightclick: '<grey>⏵</grey> <white>⸷</white> <#2ECC71>ʀɪɢʜᴛ ᴄʟɪᴄᴋ</#2ECC71> • {togglefavorite}'
+        shiftleftclick: '<grey>⏵</grey> <#2ECC71>ꜱʜɪꜰᴛ</#2ECC71> <grey>+</grey> <white>⸶</white> <#2ECC71>ʟᴇꜰᴛ ᴄʟɪᴄᴋ</#2ECC71> • {unlocktag}'
+        shiftrightclick: '<grey>⏵</grey> <#2ECC71>ꜱʜɪꜰᴛ</#2ECC71> <grey>+</grey> <white>⸷</white> <#2ECC71>ʀɪɢʜᴛ ᴄʟɪᴄᴋ</#2ECC71> • {activefavorite}'
+    
+    gui:
+      titles:
+        category-menu: '<gold>Tags</gold> <dark_grey>|</dark_grey> <gold>Categories</gold>'
+        tags-menu: '<gold>Tags</gold> <dark_grey>|</dark_grey> {category} <dark_grey>•</dark_grey> <grey>({currentpage}/{totalpages})</grey>'
+        color-sort-button: '<grey>COLOR</grey> <dark_grey>•</dark_grey> {color}'
+        last-page-button: '<grey>Previous Page<grey>'
+        next-page-button: '<grey>Next Page<grey>'
+        reset-button: '<red>Reset Tag</red>'
+        active-tag: '<gold>Active Tag</gold> <dark_grey>•</dark_grey> {activetag}'
+        back-button: '<red>Back</red>'
+        close-button: '<red>Exit</red>'
+        empty-slot: ''
+        favorited-icon: '<white>✭</white>'
+      labels:
+        setactive: '<gold>[Set as active tag]</gold>'
+        togglefavorite:
+          add: '<gold>[Set favorite]</gold>'
+          remove: '<gold>[Remove favorite]</gold>'
+        unlocktag: '<gold>[Unlock tag]</gold>'
+        activefavorite: '<gold>[Set as active tag + favorite]</gold>'
+      lore:
+        active: # used when the tag condition is ACTIVE
+          - '<dark_grey>•</dark_grey><st>                                                        </st><dark_grey>•</dark_grey>'
+          - ''
+          - '<grey>Icon</grey> <dark_grey>•</dark_grey> {tag.display}'
+          - ''
+          - '<grey>Description</grey> <dark_grey>•</dark_grey>'
+          - '  {tag.lore}'
+          - ''
+          - '{gui.rightclick}'
+          - ''
+          - '<grey>Status</grey> <dark_grey>•</dark_grey> {tag.status}'
+          - '<dark_grey>•</dark_grey><st>                                                        </st><dark_grey>•</dark_grey>'
+        unlocked: # used when the tag condition is UNLOCKED
+          - '<dark_grey>•</dark_grey><st>                                                        </st><dark_grey>•</dark_grey>'
+          - ''
+          - '<grey>Icon</grey> <dark_grey>•</dark_grey> {tag.display}'
+          - ''
+          - '<grey>Description</grey> <dark_grey>•</dark_grey>'
+          - '  {tag.lore}'
+          - ''
+          - '{gui.leftclick}'
+          - '{gui.rightclick}'
+          - '{gui.shiftrightclick}'
+          - ''
+          - '<grey>Status</grey> <dark_grey>•</dark_grey> {tag.status}'
+          - '<dark_grey>•</dark_grey><st>                                                        </st><dark_grey>•</dark_grey>'
+        locked: # used when the tag condition is LOCKED
+          - '<dark_grey>•</dark_grey><st>                                                        </st><dark_grey>•</dark_grey>'
+          - ''
+          - '<grey>Icon</grey> <dark_grey>•</dark_grey> {tag.display}'
+          - ''
+          - '<grey>Description</grey> <dark_grey>•</dark_grey>'
+          - '  {tag.lore}'
+          - ''
+          - '{gui.shiftleftclick}'
+          - '{gui.rightclick}'
+          - ''
+          - '<grey>Status</grey> <dark_grey>•</dark_grey> {tag.status}'
+          - '<dark_grey>•</dark_grey><st>                                                        </st><dark_grey>•</dark_grey>'
+        protected: # used when the tag condition is PROTECTED
+          - '<dark_grey>•</dark_grey><st>                                                        </st><dark_grey>•</dark_grey>'
+          - ''
+          - '<grey>Icon</grey> <dark_grey>•</dark_grey> {tag.display}'
+          - ''
+          - '<grey>Description</grey> <dark_grey>•</dark_grey>'
+          - '  {tag.lore}'
+          - ''
+          - '<red>(</red>{protected} <red>tags cannot be purchased.</red>'
+          - ''
+          - '{gui.rightclick}'
+          - ''
+          - '<grey>Status</grey> <dark_grey>•</dark_grey> {tag.status}'
+          - '<dark_grey>•</dark_grey><st>                                                        </st><dark_grey>•</dark_grey>'
+        empty-slot:
+            - ''
+        category-sort-button: # these lore values should be appended after the category.yml lore 
+            - '{chat.leftclick} <gold>[Next Category]</gold>'
+            - '{chat.rightclick} <gold>[Previous Category]</gold>'
+            - '{chat.shiftleftclick} <gold>[First Category]</gold>'
+            - '{chat.shiftrightclick} <gold>[Last Category]</gold>'
+        favorite-sort-button:
+            - '{chat.leftclick} <gold>[Change Sort Type]</gold>'
+        color-sort-button:
+            - '{chat.leftclick} <gold>[Next Color]</gold>'
+            - '{chat.rightclick} <gold>[Previous Color]</gold>'
+            - '{chat.shiftleftclick} <gold>[First Color]</gold>'
+            - '{chat.shiftrightclick} <gold>[Last Color]</gold>'
+        last-page-button:
+            - ''
+        next-page-button:
+            - ''
+        reset-button:
+            - '{chat.leftclick} <gold>[Reset Tag to Default]</gold>'
+        active-tag:
+            - ''
+        back-button:
+            - ''
+    
+    # Command messages
+    commands:
+      reload:
+        complete: '<green>Configuration reloaded successfully.</green>'
+      sync: 
+        # Sync timer text formats
+        sync-timer:
+          text: 
+            active: '<red>{countdown}</red><grey>s</grey>'
+            expired: '{expired}'
+
+        # Sync confirmation messages
+        sync-pd-confirm: 
+          - '<red>WARNING!</red> <grey>Syncing the data manually will overwrite the data stored in</grey> {luckperms} <grey>with the data stored within the json/yaml files in</grey> {playerdata-path}<grey>.</grey>'
+          - '<red>These actions <bold>cannot be undone</bold>.</red>'
+          - '<grey>To</grey> <green>proceed</green> <grey>click</grey> {confirm} <grey>within</grey> {countdown}<grey>.</grey>'
+          - '<grey>To</grey> <red>cancel</red> <grey>click</grey> {cancel} <grey> or wait for the timer to expire.</grey>'
+
+        sync-lp-confirm: 
+          - '<red>WARNING!</red> <grey>Syncing the data manually will overwrite the data stored within the json/yaml files in</grey> {playerdata-path} <grey>with the data stored in</grey> {luckperms}<grey>.</grey>'
+          - '<red>These actions <bold>cannot be undone</bold>.</red>'
+          - '<grey>To</grey> <green>proceed</green> <grey>click</grey> {confirm} <grey>within</grey> {countdown}<grey>.</grey>'
+          - '<grey>To</grey> <red>cancel</red> <grey>click</grey> {cancel} <grey> or wait for the timer to expire.</grey>'
+
+        # Sync status messages
+        sync-complete: '<grey>Successfully synchronized playerdata from</grey> {data.src} <grey>to</grey> {data.destination}<grey>.</grey>'
+        sync-all-complete: 
+          - '<grey>Successfully synchronized</grey> <gold>{count}</gold> <grey>player data entries from</grey> {data.src} <grey>to</grey> {data.destination}<grey>.</grey>'
+        sync-canceled: 
+          - '<grey>Sync action(s) canceled.</grey> <red>No changes were synced.</red> <grey>To try again, run the</grey> <dark_grey>\''</dark_grey><gold>/coretags admin sync <destination> <target></gold><dark_grey>\''</dark_grey> <grey>command again and click</grey> {confirm}<grey>.</grey>'
+
+    # Error Messages
+    error:
+      no-permission: '<red>Action canceled. Administrator access is required to perform this action.</red>'
+      player-only: '<red>Action canceled. Current action cannot be performed from console.</red>'
+      invalid-args: '<red>Invalid arguments.</red> <grey>Usage</grey> <dark_grey>•</dark_grey> <grey>{usage}</grey>'
+      player-not-found: '<red>Player</red> <gold>{player}</gold> <red>not found.</red>'
+      no-player-data: '<red>Player data is missing or corrupted.</red>'
+      sync-failed: '<red>Failed to sync player data for</red> <grey>{uuid}</grey><red>. Check console for errors.</red>'
+      file-corrupted: '<red>Player data for</red> <grey>{uuid}</grey> <red>is corrupted. {error}</red>'
+      
+    tags:
+      tag-reset: '<gold>Active tag</gold> <grey>has been</grey> {reset} <grey>to default.</grey>' # msg when player resets their tag settings
+      tag-activate: '{activetag} <grey>set to</grey> {active}<grey>.</grey>' # msg when player sets a tag to active
+      tag-balance: '<red>Transaction failed.</red> <grey>Minimum balance of</grey> {cost} <grey>needed to</grey> {unlock} <grey>the</grey> {tag} <grey>tag.</grey>' # msg when player doesnt have enough balance to purchase the tag.
+      tag-unlocked: '{tag} <grey>has been</grey> {unlocked}<grey>.</grey>' # msg when player purchases/unlocks a tag.
+      tag-locked: '{tag} <grey>is</grey> {locked} <grey>. To</grey> {unlock} <grey>the<grey> {tag} <grey>tag, hold</grey> {chat.shiftleftclick} <grey>the tag.</grey>' # msg when player tries to activate a locked tag.
+      tag-authorize: '{tag} <grey>has been</grey> {unlocked} <grey>for</grey> <gold>{player}</gold><grey>.</grey>'
+      tag-revoke: '{tag} <grey>has been</grey> {locked} <grey>for</grey> <gold>{player}</gold><grey>.</grey>'
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
