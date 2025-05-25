@@ -1,86 +1,334 @@
 plugins {
     id 'java'
+    id 'java-library'
 }
 
 group = 'io.rhythmknights'
-version = '2.0-HORIZON'
-description = 'Advanced tag system with GUI for player customization'
+version = '2.1-HORIZON'
+description = 'A powerful tag/prefix management plugin with CoreAPI, CoreFramework, LuckPerms, PlaceholderAPI, Vault & Adventure support.'
 
 java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    withJavadocJar()
+    withSourcesJar()
 }
 
 repositories {
     mavenCentral()
-    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
-    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
-    maven { url = 'https://libraries.minecraft.net/' }
-    maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
-    maven { url = 'https://oss.sonatype.org/content/groups/public/' }
-    maven { url = 'https://jitpack.io' } // For VaultAPI
+    
+    // Spigot
+    maven {
+        name = 'spigotmc-repo'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+    
+    // Sonatype
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+    
+    // LuckPerms
+    maven {
+        name = 'luckperms'
+        url = 'https://repo.luckperms.net/'
+    }
+    
+    // PlaceholderAPI
+    maven {
+        name = 'placeholderapi'
+        url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+    
+    // JitPack for Vault
+    maven {
+        name = 'jitpack'
+        url = 'https://jitpack.io'
+    }
+    
+    // Local libs directory for CoreFramework (which includes CoreAPI)
     flatDir {
-        dirs 'libs' // For local CoreFramework and CoreAPI jars ONLY
+        dirs 'libs'
     }
 }
 
 dependencies {
-    // Bukkit API
-    compileOnly 'io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT'
+    // Spigot API - Updated to latest version
+    compileOnly 'org.spigotmc:spigot-api:1.21.5-R0.1-SNAPSHOT'
     
-    // CoreFramework - PROVIDES EVERYTHING (Adventure API + CoreAPI)
-    compileOnly name: 'CoreFramework-2.0-HORIZON', version: ''
-    compileOnly name: 'CoreAPI-2.0-HORIZON', version: ''
+    // Adventure Platform - Updated versions
+    compileOnly 'net.kyori:adventure-platform-bukkit:4.4.0'
+    compileOnly 'net.kyori:adventure-text-minimessage:4.21.0'
+    compileOnly 'net.kyori:adventure-text-serializer-legacy:4.21.0'
+    compileOnly 'net.kyori:adventure-text-serializer-plain:4.21.0'
     
-    // Hook dependencies - FROM MAVEN REPOS
+    // CoreFramework (local JAR that includes CoreAPI)
+    // This replaces the separate CoreAPI and CoreFramework dependencies
+    //compileOnly name: 'CoreFramework', version: '', ext: 'jar'
+    
+    // Alternative syntax if the JAR has a version in the filename:
+    compileOnly name: 'CoreFramework-2.0-HORIZON', version: '', ext: 'jar'
+    
+    // LuckPerms API
     compileOnly 'net.luckperms:api:5.4'
+    
+    // PlaceholderAPI - Updated version
     compileOnly 'me.clip:placeholderapi:2.11.6'
-    compileOnly 'com.github.MilkBowl:VaultAPI:1.7.1'
     
-    // Annotations
-    compileOnly 'org.jetbrains:annotations:24.0.0'
+    // Vault API
+    compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
     
-    // Testing dependencies
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+    // JetBrains Annotations
+    compileOnly 'org.jetbrains:annotations:24.0.1'
 }
 
-processResources {
-    filesMatching('plugin.yml') {
-        expand(
-            'version': version,
-            'description': project.description
-        )
-    }
-}
-
-tasks.withType(JavaCompile).configureEach {
+tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
-    options.release = 21
     options.compilerArgs += ['-parameters']
 }
 
-javadoc {
-    options.encoding = 'UTF-8'
-    options.addStringOption('Xdoclint:none', '-quiet')
-    title = "CoreTags ${project.version}"
-}
-
 jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    archiveBaseName = project.name
+    archiveVersion = project.version
     
     manifest {
         attributes(
-            'Implementation-Title': 'CoreTags',
-            'Implementation-Version': version,
-            'Built-By': System.properties['user.name']
+            'Implementation-Title': project.name,
+            'Implementation-Version': project.version,
+            'Implementation-Vendor': 'RhythmKnights',
+            'Built-By': System.getProperty('user.name'),
+            'Build-Timestamp': new Date(),
+            'Build-Jdk': "${System.getProperty('java.version')} (${System.getProperty('java.vendor')} ${System.getProperty('java.vm.version')})",
+            'Build-OS': "${System.getProperty('os.name')} ${System.getProperty('os.arch')} ${System.getProperty('os.version')}"
         )
     }
 }
 
-test {
-    useJUnitPlatform()
+javadoc {
+    options {
+        encoding = 'UTF-8'
+        charSet = 'UTF-8'
+        author = true
+        version = true
+        use = true
+        windowTitle = "${project.name} ${project.version} API"
+        docTitle = "${project.name} ${project.version} API"
+        bottom = "Copyright © 2024 RhythmKnights. All rights reserved."
+        
+        // Add links to external documentation
+        links(
+            'https://docs.oracle.com/en/java/javase/21/docs/api/',
+            'https://hub.spigotmc.org/javadocs/spigot/',
+            'https://jd.advntr.dev/',
+            'https://luckperms.net/javadoc/api/',
+            'https://javadoc.io/doc/me.clip/placeholderapi/latest/'
+        )
+        
+        // Exclude internal packages if any
+        exclude '**/internal/**'
+        
+        // Add custom tags
+        tags(
+            'apiNote:a:API Note:',
+            'implSpec:a:Implementation Requirements:',
+            'implNote:a:Implementation Note:'
+        )
+    }
+    
+    // Fail build on javadoc warnings
+    failOnError = true
+    
+    // Include private members in documentation
+    options.memberLevel = JavadocMemberLevel.PRIVATE
+    
+    doFirst {
+        println "Generating JavaDoc for ${project.name} ${project.version}"
+    }
+    
+    doLast {
+        println "JavaDoc generation completed. Output: ${destinationDir}"
+    }
+}
+
+// Custom task to generate JavaDoc with better formatting
+task generateApiDocs(type: Javadoc) {
+    description = 'Generates comprehensive API documentation'
+    group = 'documentation'
+    
+    source = sourceSets.main.allJava
+    classpath = configurations.compileClasspath
+    destinationDir = file("${buildDir}/docs/api")
+    
+    options {
+        encoding = 'UTF-8'
+        charSet = 'UTF-8'
+        author = true
+        version = true
+        use = true
+        splitIndex = true
+        windowTitle = "${project.name} ${project.version} API Documentation"
+        docTitle = "<h1>${project.name} ${project.version}</h1><p>API Documentation</p>"
+        header = "<b>${project.name} ${project.version}</b>"
+        footer = "<b>${project.name} ${project.version}</b>"
+        bottom = """
+            <div style="text-align: center;">
+                <p>Copyright © 2024 <a href="https://github.com/RhythmKnights" target="_blank">RhythmKnights</a>. All rights reserved.</p>
+                <p>Built with <a href="https://gradle.org/" target="_blank">Gradle</a> on ${new Date().format('yyyy-MM-dd HH:mm:ss')} UTC</p>
+            </div>
+        """
+        
+        // Styling - only if file exists
+        def stylesheetFile = file("${projectDir}/javadoc-style.css")
+        if (stylesheetFile.exists()) {
+            stylesheetFile = stylesheetFile
+        }
+        
+        // Links to external APIs
+        links(
+            'https://docs.oracle.com/en/java/javase/21/docs/api/',
+            'https://hub.spigotmc.org/javadocs/spigot/',
+            'https://jd.advntr.dev/',
+            'https://luckperms.net/javadoc/api/',
+            'https://javadoc.io/doc/me.clip/placeholderapi/latest/'
+        )
+        
+        // Custom tags
+        tags(
+            'apiNote:a:API Note:',
+            'implSpec:a:Implementation Requirements:',
+            'implNote:a:Implementation Note:',
+            'since:a:Since:'
+        )
+    }
+    
+    include '**/*.java'
+    failOnError = false
+}
+
+// Task to check JavaDoc completeness
+task checkJavadoc {
+    description = 'Checks JavaDoc completeness and quality'
+    group = 'verification'
+    
+    doLast {
+        def sourceFiles = fileTree(dir: 'src/main/java', include: '**/*.java')
+        def missingJavadoc = []
+        
+        sourceFiles.each { file ->
+            def content = file.text
+            def packagePattern = /package\s+[\w.]+;/
+            def classPattern = /(?:public|private|protected)?\s*(?:abstract|final)?\s*class\s+\w+/
+            def methodPattern = /(?:public|private|protected)\s+(?:static\s+)?(?:final\s+)?\w+(?:<[^>]+>)?\s+\w+\s*\([^)]*\)/
+            
+            // Check for missing class JavaDoc
+            if (content.matches(/(?s).*${classPattern}.*/)) {
+                if (!content.matches(/(?s).*\/\*\*.*?\*\/\s*${classPattern}.*/)) {
+                    missingJavadoc.add("${file.path}: Missing class JavaDoc")
+                }
+            }
+        }
+        
+        if (!missingJavadoc.isEmpty()) {
+            println "JavaDoc completeness check found issues:"
+            missingJavadoc.each { println "  - ${it}" }
+        } else {
+            println "JavaDoc completeness check passed!"
+        }
+    }
+}
+
+// Task to check if CoreFramework JAR exists
+task checkCoreFramework {
+    description = 'Checks if CoreFramework JAR exists in libs directory'
+    group = 'verification'
+    
+    doLast {
+        def libsDir = file('libs')
+        def coreFrameworkJars = libsDir.exists() ? libsDir.listFiles()?.findAll { 
+            it.name.toLowerCase().contains('coreframework') && it.name.endsWith('.jar') 
+        } : []
+        
+        if (!libsDir.exists()) {
+            throw new GradleException("libs directory does not exist. Please create it and add CoreFramework.jar")
+        }
+        
+        if (!coreFrameworkJars || coreFrameworkJars.isEmpty()) {
+            println "Available JARs in libs/:"
+            libsDir.listFiles()?.each { println "  - ${it.name}" }
+            throw new GradleException("CoreFramework JAR not found in libs/ directory. Please add CoreFramework.jar to libs/")
+        }
+        
+        println "Found CoreFramework JAR(s):"
+        coreFrameworkJars.each { println "  - ${it.name}" }
+    }
+}
+
+// Make build depend on CoreFramework check and javadoc generation
+build.dependsOn checkCoreFramework, javadoc
+
+// Task aliases for convenience
+task docs {
+    description = 'Alias for generateApiDocs'
+    group = 'documentation'
+    dependsOn generateApiDocs
+}
+
+task doc {
+    description = 'Alias for javadoc'
+    group = 'documentation'
+    dependsOn javadoc
+}
+
+// Clean task enhancement
+clean {
+    delete file("${buildDir}/docs")
+    // Only delete javadoc-style.css if it exists
+    def stylesheetFile = file("${projectDir}/javadoc-style.css")
+    if (stylesheetFile.exists()) {
+        delete stylesheetFile
+    }
+}
+
+// Print build information
+gradle.buildFinished { buildResult ->
+    println ""
+    println "=========================================="
+    println "Build completed for ${project.name} ${project.version}"
+    println "Build result: ${buildResult.failure ? 'FAILED' : 'SUCCESS'}"
+    if (buildResult.failure) {
+        println "Failure reason: ${buildResult.failure.message}"
+    }
+    println "=========================================="
+}
+
+// Help task to show expected project structure
+task projectStructure {
+    description = 'Shows the expected project structure'
+    group = 'help'
+    
+    doLast {
+        println """
+        Expected project structure:
+        
+        YourProject/
+        ├── build.gradle
+        ├── libs/
+        │   └── CoreFramework.jar  (includes CoreAPI)
+        ├── src/
+        │   └── main/
+        │       ├── java/
+        │       └── resources/
+        └── javadoc-style.css (optional)
+        
+        To set up:
+        1. Create libs/ directory: mkdir libs
+        2. Copy CoreFramework.jar to libs/
+        3. Run: ./gradlew checkCoreFramework
+        4. Build: ./gradlew build
+        """
+    }
 }

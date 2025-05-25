@@ -1,546 +1,641 @@
 package io.rhythmknights.coretags;
 
+import io.rhythmknights.coreapi.CoreAPI;
 import io.rhythmknights.coreframework.CoreFramework;
-import io.rhythmknights.coreframework.component.api.hook.HookRequirement;
-import io.rhythmknights.coreframework.component.api.plugin.RegisteredPlugin;
-import io.rhythmknights.coreframework.component.utility.TextUtility;
-import io.rhythmknights.coretags.component.command.CoreTagsCommand;
-import io.rhythmknights.coretags.component.data.DataProcessor;
-import io.rhythmknights.coretags.component.data.PlayerDataProcessor;
-import io.rhythmknights.coretags.component.hook.CoreTagsHookProcessor;
-import io.rhythmknights.coretags.component.listener.LuckPermsListener;
-import io.rhythmknights.coretags.component.listener.PlayerEventListener;
+import io.rhythmknights.coreframework.util.TextUtility;
+import io.rhythmknights.coretags.component.command.CommandModule;
+import io.rhythmknights.coretags.component.data.ConfigModule;
+import io.rhythmknights.coretags.component.data.PlayerDataModule;
+import io.rhythmknights.coretags.component.hook.LuckPermsHook;
+import io.rhythmknights.coretags.component.hook.PlaceholderHook;
+import io.rhythmknights.coretags.component.hook.VaultHook;
+import io.rhythmknights.coretags.component.modal.CategoryModal;
+import io.rhythmknights.coretags.component.modal.ModalProcessor;
+import io.rhythmknights.coretags.component.modal.TagModal;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.luckperms.api.LuckPerms;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.logging.Level;
 
 /**
- * Main class for the CoreTags plugin.
- * Handles plugin initialization, configuration loading, and CoreFramework integration.
+ * CoreTags - A powerful tag/prefix management plugin with CoreAPI, CoreFramework, 
+ * LuckPerms, PlaceholderAPI, Vault &amp; Adventure support.
+ * 
+ * <p>This plugin provides a comprehensive tag management system that allows players
+ * to unlock, purchase, and display custom tags. It integrates with modern Minecraft
+ * plugin frameworks and provides a rich GUI experience through CoreAPI.</p>
+ * 
+ * <p>Key features include:</p>
+ * <ul>
+ *   <li>CoreAPI integration for modern modal-based GUIs</li>
+ *   <li>CoreFramework integration for unified text processing</li>
+ *   <li>LuckPerms integration for permission-based tag access</li>
+ *   <li>Vault integration for economy-based tag purchasing</li>
+ *   <li>PlaceholderAPI support for external plugin integration</li>
+ *   <li>Category-based tag organization</li>
+ *   <li>Color filtering and sorting capabilities</li>
+ *   <li>Favorites system for quick tag access</li>
+ * </ul>
+ * 
+ * @author RhythmKnights
+ * @version 2.1-HORIZON
+ * @since 1.0.0
+ * 
+ * @apiNote This plugin requires CoreAPI and CoreFramework as hard dependencies.
+ * @implNote The plugin follows a modular architecture with separate components
+ *           for different functionalities.
  */
-public class CoreTags extends JavaPlugin {
-    private static CoreTags instance;
-    
-    // Core components
-    private DataProcessor dataProcessor;
-    private CoreTagsHookProcessor hookProcessor;
-    private RegisteredPlugin registeredPlugin;
-    private CoreTagsCommand commandHandler;
-    
-    // Player data system
-    private PlayerDataProcessor playerDataProcessor;
-    private LuckPermsListener luckPermsListener;
-    private PlayerEventListener playerEventListener;
-    
-    // Plugin state
-    private boolean enabled = false;
+public final class CoreTags extends JavaPlugin {
     
     /**
-     * Default constructor for CoreTags
-     * Called by Bukkit when loading the plugin
+     * The singleton instance of the CoreTags plugin.
+     * This is set during the {@link #onLoad()} phase and provides
+     * global access to the plugin instance.
      */
-    public CoreTags() {
-        super();
-    }
+    private static CoreTags INSTANCE;
     
+    /**
+     * Adventure audiences instance for modern text component handling.
+     * Used throughout the plugin for sending formatted messages to players.
+     */
+    private BukkitAudiences adventure;
+    
+    /**
+     * CoreAPI instance for modal-based GUI functionality.
+     * Provides access to the modern GUI framework.
+     */
+    private CoreAPI coreAPI;
+    
+    /**
+     * CoreFramework instance for utility functions and text processing.
+     * Central framework providing common functionality across RhythmKnights plugins.
+     */
+    private CoreFramework coreFramework;
+    
+    /**
+     * TextUtility instance from CoreFramework for unified text processing.
+     * Handles parsing of legacy color codes, MiniMessage, and Adventure components.
+     */
+    private TextUtility textUtility;
+    
+    /**
+     * LuckPerms integration hook for permission management.
+     * Handles permission-based tag access and group synchronization.
+     */
+    private LuckPermsHook luckPermsHook;
+    
+    /**
+     * Vault integration hook for economy functionality.
+     * Manages tag purchasing and balance checking.
+     */
+    private VaultHook vaultHook;
+    
+    /**
+     * Configuration module for managing plugin settings.
+     * Handles loading and parsing of the main configuration file.
+     */
+    private ConfigModule configModule;
+    
+    /**
+     * Category modal for managing tag categories.
+     * Handles category definitions and GUI display.
+     */
+    private CategoryModal categoryModal;
+    
+    /**
+     * Tag modal for managing individual tags.
+     * Handles tag definitions, loading, and metadata.
+     */
+    private TagModal tagModal;
+    
+    /**
+     * Player data module for managing player-specific data.
+     * Handles tag unlocking, favorites, and active tag tracking.
+     */
+    private PlayerDataModule playerDataModule;
+    
+    /**
+     * Modal processor for handling GUI interactions.
+     * Central component for managing all GUI-related functionality.
+     */
+    private ModalProcessor modalProcessor;
+    
+    /**
+     * Command module for handling plugin commands.
+     * Manages command execution and tab completion.
+     */
+    private CommandModule commandModule;
+    
+    /**
+     * PlaceholderAPI integration hook for external plugin support.
+     * Provides placeholders for use in other plugins.
+     */
+    private PlaceholderHook placeholderHook;
+
+    /**
+     * Called when the plugin is loaded by the server.
+     * This occurs before the server finishes loading all plugins.
+     * 
+     * <p>During this phase, we set the singleton instance to allow
+     * other components to access the plugin during initialization.</p>
+     * 
+     * @implNote This method should only perform minimal initialization
+     *           as other plugins may not be available yet.
+     */
+    @Override
+    public void onLoad() {
+        INSTANCE = this;
+    }
+
+    /**
+     * Called when the plugin is enabled by the server.
+     * This is where the main initialization logic occurs.
+     * 
+     * <p>The initialization process follows this order:</p>
+     * <ol>
+     *   <li>Initialize required frameworks (CoreAPI, CoreFramework)</li>
+     *   <li>Set up Adventure audiences for text handling</li>
+     *   <li>Initialize configuration and data modules</li>
+     *   <li>Set up integration hooks for external plugins</li>
+     *   <li>Initialize modal and command systems</li>
+     *   <li>Register optional integrations (PlaceholderAPI, Nexo)</li>
+     * </ol>
+     * 
+     * @implNote If framework initialization fails, the plugin will disable itself
+     *           to prevent runtime errors.
+     */
     @Override
     public void onEnable() {
-        instance = this;
+        this.info("Enabling CoreTags " + this.getDescription().getVersion());
         
-        getLogger().info("CoreTags onEnable() starting...");
-        
-        // Initialize data processor first
-        dataProcessor = new DataProcessor(this);
-        
-        if (!dataProcessor.initialize()) {
-            getLogger().severe("Failed to initialize DataProcessor - disabling plugin!");
-            getServer().getPluginManager().disablePlugin(this);
+        // Initialize frameworks
+        if (!this.initializeFrameworks()) {
+            this.getLogger().severe("Failed to initialize required frameworks!");
+            this.getServer().getPluginManager().disablePlugin(this);
             return;
         }
         
-        getLogger().info("DataProcessor initialized successfully");
+        this.adventure = BukkitAudiences.create(this);
+        this.configModule = new ConfigModule(this);
+        this.luckPermsHook = new LuckPermsHook(this, this.getLuckPermsApi());
+        this.vaultHook = new VaultHook(this, this.getVaultEconomy());
+        this.categoryModal = new CategoryModal(this);
+        this.tagModal = new TagModal(this);
+        this.playerDataModule = new PlayerDataModule(this);
+        this.modalProcessor = new ModalProcessor(this);
+        this.commandModule = new CommandModule(this);
         
-        // Check if CoreFramework plugin is loaded
-        Plugin coreFrameworkPlugin = Bukkit.getPluginManager().getPlugin("CoreFramework");
-        if (coreFrameworkPlugin == null) {
-            getLogger().severe("CoreFramework plugin is not loaded! CoreTags requires CoreFramework to function.");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            this.placeholderHook = new PlaceholderHook(this);
         }
+
+        this.reloadEverything();
+        this.info("CoreTags enabled successfully.");
         
-        if (!coreFrameworkPlugin.isEnabled()) {
-            getLogger().severe("CoreFramework plugin is not enabled! CoreTags requires CoreFramework to be enabled.");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
-        
-        getLogger().info("CoreFramework dependency verified");
-        
-        // Register with CoreFramework using direct method
-        if (registerWithCoreFramework()) {
-            // Registration successful, continue with initialization
-            getLogger().info("Successfully registered with CoreFramework");
-            completeInitialization();
-        } else {
-            // Registration failed
-            getLogger().severe("Failed to register with CoreFramework - disabling plugin!");
-            getServer().getPluginManager().disablePlugin(this);
-        }
-    }
-    
-    /**
-     * Register this plugin with CoreFramework using direct method
-     * @return true if registration was successful
-     */
-    private boolean registerWithCoreFramework() {
-        try {
-            // Get CoreFramework instance directly from Bukkit's plugin manager
-            Plugin plugin = Bukkit.getPluginManager().getPlugin("CoreFramework");
-            if (!(plugin instanceof CoreFramework)) {
-                getLogger().severe("CoreFramework plugin is not the correct type!");
-                return false;
-            }
-            
-            CoreFramework coreFramework = (CoreFramework) plugin;
-            
-            // Define hook requirements for CoreTags
-            List<HookRequirement> hookRequirements = Arrays.asList(
-                HookRequirement.required("PlaceholderAPI", "2.11.6+"),
-                HookRequirement.required("LuckPerms", "5.4+"),
-                HookRequirement.optional("VaultAPI", "1.7.3+"),
-                HookRequirement.optional("Nexo", "any")
-            );
-            
-            // Register with CoreFramework using the direct method
-            registeredPlugin = coreFramework.registerPluginDirect(
-                this, "2.0-HORIZON", "HORIZON", hookRequirements
-            );
-            
-            if (registeredPlugin == null) {
-                getLogger().severe("CoreFramework returned null for plugin registration!");
-                return false;
-            }
-            
-            return true;
-        } catch (Exception e) {
-            getLogger().log(Level.SEVERE, "Failed to register with CoreFramework!", e);
-            return false;
-        }
-    }
-    
-    /**
-     * Complete initialization after successful registration
-     */
-    private void completeInitialization() {
-        getLogger().info("Starting plugin initialization...");
-        
-        // Initialize hook processor and process hooks
-        hookProcessor = new CoreTagsHookProcessor(this);
-        getLogger().info("Processing dependency hooks...");
-        boolean hookSuccess = hookProcessor.processHooks(registeredPlugin);
-        
-        // Update the registered plugin with hook results
-        registeredPlugin.setAllRequiredHooksSuccessful(hookSuccess);
-        
-        // Continue with plugin initialization regardless of hook success for now
-        // This allows the plugin to work even if some optional dependencies are missing
-        getLogger().info("Initializing plugin features...");
-        initializePlugin();
-        enabled = true;
-        
-        if (hookSuccess) {
-            getLogger().info("All required dependencies loaded successfully");
-        } else {
-            getLogger().warning("Some dependencies missing - plugin may have limited functionality");
-        }
-        
-        getLogger().info("CoreTags initialization completed");
-    }
-    
-    /**
-     * Initialize the plugin features after successful hook processing
-     */
-    private void initializePlugin() {
-        // Initialize command handler
-        commandHandler = new CoreTagsCommand(this);
-        
-        // Register commands
-        if (getCommand("coretags") != null) {
-            getCommand("coretags").setExecutor(commandHandler);
-            getCommand("coretags").setTabCompleter(commandHandler);
-        } else {
-            getLogger().warning("Failed to register /coretags command - command not found in plugin.yml!");
-        }
-        
-        // Initialize player data system
-        initializePlayerDataSystem();
-        
-        // Initialize tag system components
-        initializeTagSystem();
-        
-        // Log successful initialization if debug enabled
-        if (isDebugEnabled()) {
-            getLogger().info("CoreTags initialized successfully with modal system!");
-        }
-    }
-    
-    /**
-     * Initialize the player data processing system
-     */
-    private void initializePlayerDataSystem() {
-        try {
-            getLogger().info("Initializing player data system...");
-            
-            // Initialize the player data processor
-            playerDataProcessor = new PlayerDataProcessor(this);
-            getLogger().info("PlayerDataProcessor initialized");
-            
-            // Initialize LuckPerms listener for automatic sync
-            luckPermsListener = new LuckPermsListener(this, playerDataProcessor);
-            getLogger().info("LuckPermsListener initialized");
-            
-            // Initialize player event listener for join/quit handling
-            playerEventListener = new PlayerEventListener(this, playerDataProcessor);
-            getLogger().info("PlayerEventListener created");
-            
-            // Register the player event listener with Bukkit
-            getServer().getPluginManager().registerEvents(playerEventListener, this);
-            getLogger().info("PlayerEventListener registered with Bukkit");
-            
-            getLogger().info("Player data system initialized successfully");
-            
-        } catch (Exception e) {
-            getLogger().severe("Failed to initialize player data system: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    /**
-     * Initialize the tag system components
-     */
-    private void initializeTagSystem() {
-        // TODO: Initialize player data manager
-        // TODO: Initialize tag manager
-        // TODO: Initialize economy integration (if enabled)
-        // TODO: Register event listeners
-        
-        // For now, just log that the system is ready
-        if (isDebugEnabled()) {
-            getLogger().info("Tag system components initialized (placeholder)");
+        if (Bukkit.getPluginManager().isPluginEnabled("Nexo")) {
+            this.integrateNexo();
         }
     }
 
     /**
-     * Reloads all configuration files from the plugin data folder
-     * Used by the reload command
+     * Called when the plugin is disabled by the server.
+     * This handles cleanup of resources and saving any pending data.
      * 
-     * @return True if reload was successful
+     * <p>Cleanup operations include:</p>
+     * <ul>
+     *   <li>Closing all open modals for players</li>
+     *   <li>Shutting down Adventure audiences</li>
+     *   <li>Logging shutdown message</li>
+     * </ul>
+     * 
+     * @implNote This method should be safe to call multiple times
+     *           and handle null components gracefully.
      */
-    public boolean reloadConfigurations() {
-        try {
-            getLogger().info("Reloading CoreTags configurations...");
-            
-            if (dataProcessor == null) {
-                getLogger().severe("DataProcessor is null - cannot reload configurations!");
-                return false;
-            }
-            
-            boolean success = dataProcessor.reload();
-            
-            if (success) {
-                getLogger().info("Configuration reload completed successfully");
-            } else {
-                getLogger().severe("Configuration reload failed!");
-            }
-            
-            return success;
-            
-        } catch (Exception e) {
-            getLogger().log(Level.SEVERE, "Failed to reload configurations!", e);
-            return false;
-        }
-    }
-    
     @Override
     public void onDisable() {
-        // Send shutdown message if we were properly enabled
-        if (enabled) {
-            String shutdownMessage = getConsolidatedConfig().getString("messages.shutdown.complete", "CoreTags disabled!");
-            TextUtility.sendConsoleMessage(replaceVariables(shutdownMessage));
+        if (this.modalProcessor != null) {
+            this.modalProcessor.closeAllModals();
         }
         
-        // Cleanup player data system
-        if (luckPermsListener != null) {
-            luckPermsListener.unregister();
+        if (this.adventure != null) {
+            this.adventure.close();
         }
-        
-        // Cleanup resources
-        hookProcessor = null;
-        registeredPlugin = null;
-        commandHandler = null;
-        dataProcessor = null;
-        playerDataProcessor = null;
-        luckPermsListener = null;
-        playerEventListener = null;
-        instance = null;
-        
-        getLogger().info("CoreTags disabled.");
-    }
-    
-    /**
-     * Replace variables in messages with their actual values
-     * Delegates to DataProcessor for centralized handling
-     * @param message The message to process
-     * @return The processed message
-     */
-    public String replaceVariables(String message) {
-        if (message == null) return "";
 
-        // Delegate to DataProcessor for centralized variable replacement
-        return dataProcessor != null ? dataProcessor.replaceVariables(message) : message;
+        this.info("CoreTags disabled.");
     }
-    
+
     /**
-     * Get the plugin instance
-     * @return The CoreTags instance
+     * Initializes the required frameworks (CoreAPI and CoreFramework).
+     * 
+     * <p>This method verifies that both required frameworks are present
+     * and properly initializes the plugin's integration with them.</p>
+     * 
+     * @return {@code true} if initialization was successful, {@code false} otherwise
+     * 
+     * @implNote If this method returns {@code false}, the plugin should disable itself
+     *           as it cannot function without these frameworks.
      */
+    private boolean initializeFrameworks() {
+        try {
+            Plugin coreAPIPlugin = this.getServer().getPluginManager().getPlugin("CoreAPI");
+            Plugin coreFrameworkPlugin = this.getServer().getPluginManager().getPlugin("CoreFramework");
+            
+            if (coreAPIPlugin == null) {
+                this.getLogger().severe("CoreAPI plugin not found! Please install CoreAPI.");
+                return false;
+            }
+            
+            if (coreFrameworkPlugin == null) {
+                this.getLogger().severe("CoreFramework plugin not found! Please install CoreFramework.");
+                return false;
+            }
+            
+            this.coreAPI = CoreAPI.getInstance();
+            this.coreFramework = CoreFramework.getInstance();
+            this.textUtility = this.coreFramework.getTextUtility();
+            
+            this.info("Successfully integrated with CoreAPI and CoreFramework!");
+            return true;
+        } catch (Exception e) {
+            this.getLogger().log(Level.SEVERE, "Failed to initialize frameworks", e);
+            return false;
+        }
+    }
+
+    /**
+     * Integrates with the Nexo plugin if it's present on the server.
+     * 
+     * <p>This method copies necessary resource files to the Nexo plugin directory
+     * to enable custom item support for CoreTags. The integration is optional
+     * and the plugin will function normally without Nexo.</p>
+     * 
+     * <p>Files copied include:</p>
+     * <ul>
+     *   <li>Item definitions (YAML)</li>
+     *   <li>Model files (JSON)</li>
+     *   <li>Texture files (PNG)</li>
+     * </ul>
+     * 
+     * @implNote This method will not fail if Nexo is not present or if
+     *           file copying fails - it will only log warnings.
+     */
+    private void integrateNexo() {
+        Component prefix = ((TextComponent)((TextComponent)Component.text("[", NamedTextColor.DARK_GRAY).decoration(TextDecoration.BOLD, true))
+                .append(Component.text("CoreTags", NamedTextColor.BLUE).decoration(TextDecoration.BOLD, true)))
+                .append(Component.text("]", NamedTextColor.DARK_GRAY).decoration(TextDecoration.BOLD, true));
+                
+        this.adventure.console().sendMessage(prefix.append(Component.space())
+                .append(Component.text("Nex", NamedTextColor.AQUA))
+                .append(Component.text("o", NamedTextColor.GREEN))
+                .append(Component.text(" detected.", NamedTextColor.GRAY)));
+                
+        Plugin nexo = Bukkit.getPluginManager().getPlugin("Nexo");
+        File nexoData = nexo.getDataFolder();
+        
+        this.adventure.console().sendMessage(prefix.append(Component.space())
+                .append(Component.text("Nex", NamedTextColor.AQUA))
+                .append(Component.text("o", NamedTextColor.GREEN))
+                .append(Component.text(" files installed ", NamedTextColor.GRAY))
+                .append(Component.text("|", NamedTextColor.DARK_GRAY)));
+                
+        String[] paths = {
+            "items/oraxen_items/coretags.yml",
+            "pack/assets/minecraft/models/coretags/favoritetag.json",
+            "pack/assets/minecraft/textures/coretags/favoritetag.png"
+        };
+        
+        for (String rel : paths) {
+            File dest = new File(nexoData, rel);
+            if (this.copyResource("nexo/" + rel, dest)) {
+                this.adventure.console().sendMessage(Component.text("  + ", NamedTextColor.AQUA)
+                        .append(Component.text(rel, NamedTextColor.GOLD)));
+            }
+        }
+        
+        this.adventure.console().sendMessage(prefix.append(Component.space())
+                .append(Component.text("Nex", NamedTextColor.AQUA))
+                .append(Component.text("o", NamedTextColor.GREEN))
+                .append(Component.text(" configuration successfully installed.", NamedTextColor.GRAY)));
+    }
+
+    /**
+     * Copies a resource file from the plugin JAR to the specified target location.
+     * 
+     * <p>This method is used primarily for installing additional files for
+     * external plugin integration (such as Nexo custom items).</p>
+     * 
+     * @param resourcePath the path to the resource within the plugin JAR
+     * @param target the target file location where the resource should be copied
+     * @return {@code true} if the file was successfully copied, {@code false} otherwise
+     * 
+     * @implNote This method will create parent directories if they don't exist
+     *           and will replace existing files.
+     */
+    private boolean copyResource(@NotNull String resourcePath, @NotNull File target) {
+        try (InputStream in = this.getResource(resourcePath)) {
+            if (in == null) {
+                this.getLogger().warning("Bundled resource not found: " + resourcePath);
+                return false;
+            }
+            
+            Files.createDirectories(target.toPath().getParent());
+            Files.copy(in, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            return true;
+        } catch (IOException e) {
+            this.getLogger().warning("Failed to install " + target.getName() + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Reloads all plugin components and configurations.
+     * 
+     * <p>This method performs a comprehensive reload of the plugin without
+     * requiring a server restart. It reloads:</p>
+     * <ul>
+     *   <li>Main configuration file</li>
+     *   <li>Tag and category definitions</li>
+     *   <li>Player data from disk</li>
+     *   <li>Modal processor configurations</li>
+     *   <li>PlaceholderAPI integrations</li>
+     * </ul>
+     * 
+     * @apiNote This method is thread-safe and can be called from any thread.
+     * @implNote Some changes may require players to reopen GUIs to take effect.
+     */
+    public void reloadEverything() {
+        this.info("Reloading CoreTags…");
+        this.reloadConfig();
+        this.configModule.reload();
+        this.configModule.forceReload();
+        this.categoryModal.reload();
+        this.tagModal.reload();
+        this.modalProcessor.reloadFileConfigs();
+        this.playerDataModule.reload();
+        this.modalProcessor.refreshAll();
+        
+        if (this.placeholderHook != null) {
+            this.placeholderHook.refreshAll();
+        }
+        
+        this.info("Reload complete.");
+    }
+
+    /**
+     * Sends a formatted reload success message to the specified command sender.
+     * 
+     * <p>The message format is controlled by configuration and may include
+     * prefixes and custom styling.</p>
+     * 
+     * @param sender the command sender to receive the message
+     * 
+     * @apiNote The message will be processed through CoreFramework's TextUtility
+     *          for consistent formatting.
+     */
+    public void sendReloadMessage(@NotNull CommandSender sender) {
+        FileConfiguration cfg = this.getConfig();
+        boolean usePrefix = cfg.getBoolean("settings.messages.enable-prefix", false);
+        String prefix = usePrefix ? cfg.getString("settings.messages.prefix", "") : "";
+        String raw = cfg.getString("settings.messages.msg-reload", "&aCoreTags configuration reloaded!");
+        Component msg = this.textUtility.parseText(prefix + raw);
+        this.adventure.sender(sender).sendMessage(msg);
+    }
+
+    // Getters
+
+    /**
+     * Gets the singleton instance of the CoreTags plugin.
+     * 
+     * @return the plugin instance, or {@code null} if the plugin hasn't been loaded yet
+     * 
+     * @apiNote This method should only be called after the plugin has been loaded.
+     *          It's safe to call from other plugins' onEnable methods.
+     */
+    @Nullable
     public static CoreTags getInstance() {
-        return instance;
+        return INSTANCE;
+    }
+
+    /**
+     * Gets the Adventure audiences instance for text component handling.
+     * 
+     * @return the BukkitAudiences instance
+     * 
+     * @apiNote This is the primary way to send formatted messages to players
+     *          and should be used instead of direct Bukkit messaging methods.
+     */
+    @NotNull
+    public BukkitAudiences adventure() {
+        return this.adventure;
     }
     
     /**
-     * Get the data processor
-     * @return The data processor instance
+     * Gets the CoreAPI instance for modal functionality.
+     * 
+     * @return the CoreAPI instance
+     * 
+     * @apiNote This provides access to the modal framework used throughout
+     *          the plugin for GUI interactions.
      */
-    public DataProcessor getDataProcessor() {
-        return dataProcessor;
+    @NotNull
+    public CoreAPI coreAPI() {
+        return this.coreAPI;
     }
     
     /**
-     * Get the player data processor
-     * @return The player data processor
+     * Gets the CoreFramework instance for utility functions.
+     * 
+     * @return the CoreFramework instance
+     * 
+     * @apiNote This provides access to shared utilities across RhythmKnights plugins.
      */
-    public PlayerDataProcessor getPlayerDataProcessor() {
-        return playerDataProcessor;
+    @NotNull
+    public CoreFramework coreFramework() {
+        return this.coreFramework;
     }
     
     /**
-     * Get the consolidated configuration (backward compatibility)
-     * @return The consolidated configuration
+     * Gets the TextUtility instance for unified text processing.
+     * 
+     * @return the TextUtility instance from CoreFramework
+     * 
+     * @apiNote This should be used for all text parsing and formatting operations
+     *          to ensure consistency across the plugin.
      */
-    public YamlConfiguration getConsolidatedConfig() {
-        return dataProcessor != null ? dataProcessor.getConsolidatedConfig() : new YamlConfiguration();
+    @NotNull
+    public TextUtility textUtility() {
+        return this.textUtility;
     }
-    
+
     /**
-     * Get the internal configuration (backward compatibility)
-     * @return The consolidated configuration (acts as internal config)
+     * Gets the LuckPerms integration hook.
+     * 
+     * @return the LuckPermsHook instance
+     * 
+     * @apiNote This may return a hook with no API if LuckPerms is not installed.
+     *          Always check {@link LuckPermsHook#isPresent()} before using the API.
      */
-    public YamlConfiguration getInternalConfig() {
-        return getConsolidatedConfig();
+    @NotNull
+    public LuckPermsHook luckPerms() {
+        return this.luckPermsHook;
     }
-    
+
     /**
-     * Get the category configuration
-     * @return The category configuration
+     * Gets the Vault economy integration hook.
+     * 
+     * @return the VaultHook instance
+     * 
+     * @apiNote This may return a hook with no economy if Vault is not installed.
+     *          Always check {@link VaultHook#active()} before using economy features.
      */
-    public YamlConfiguration getCategoryConfig() {
-        return dataProcessor != null ? dataProcessor.getCategoryConfig() : new YamlConfiguration();
+    @NotNull
+    public VaultHook economy() {
+        return this.vaultHook;
     }
-    
+
     /**
-     * Get the tags configuration
-     * @return The tags configuration
+     * Gets the configuration module for accessing plugin settings.
+     * 
+     * @return the ConfigModule instance
+     * 
+     * @apiNote This provides type-safe access to configuration values
+     *          and handles automatic reloading.
      */
-    public YamlConfiguration getTagsConfig() {
-        return dataProcessor != null ? dataProcessor.getTagsConfig() : new YamlConfiguration();
+    @NotNull
+    public ConfigModule configs() {
+        return this.configModule;
     }
-    
+
     /**
-     * Get the GUI configuration
-     * @return The GUI configuration
+     * Gets the category modal for tag category management.
+     * 
+     * @return the CategoryModal instance
+     * 
+     * @apiNote This handles all category-related operations including
+     *          loading, parsing, and providing category data.
      */
-    public YamlConfiguration getGuiConfig() {
-        return dataProcessor != null ? dataProcessor.getGuiConfig() : new YamlConfiguration();
+    @NotNull
+    public CategoryModal categories() {
+        return this.categoryModal;
     }
-    
+
     /**
-     * Get the global language configuration
-     * @return The language configuration
+     * Gets the tag modal for individual tag management.
+     * 
+     * @return the TagModal instance
+     * 
+     * @apiNote This handles all tag-related operations including
+     *          loading, parsing, and providing tag data.
      */
-    public YamlConfiguration getGlobalLangConfig() {
-        return dataProcessor != null ? dataProcessor.getLangConfig() : new YamlConfiguration();
+    @NotNull
+    public TagModal tags() {
+        return this.tagModal;
     }
-    
+
     /**
-     * Get the hook processor
-     * @return The hook processor
+     * Gets the player data module for managing player-specific information.
+     * 
+     * @return the PlayerDataModule instance
+     * 
+     * @apiNote This handles player tag unlocking, favorites, active tags,
+     *          and synchronization with external systems.
      */
-    public CoreTagsHookProcessor getHookProcessor() {
-        return hookProcessor;
+    @NotNull
+    public PlayerDataModule playerData() {
+        return this.playerDataModule;
     }
-    
+
     /**
-     * Get the registered plugin instance
-     * @return The registered plugin
+     * Gets the modal processor for GUI interactions.
+     * 
+     * @return the ModalProcessor instance
+     * 
+     * @apiNote This is the central component for all GUI-related functionality
+     *          and should be used to open modals for players.
      */
-    public RegisteredPlugin getRegisteredPlugin() {
-        return registeredPlugin;
+    @NotNull
+    public ModalProcessor modalProcessor() {
+        return this.modalProcessor;
     }
-    
+
     /**
-     * Get the command handler
-     * @return The command handler
+     * Gets the LuckPerms API instance if available.
+     * 
+     * <p>This method attempts to retrieve the LuckPerms API from the
+     * Bukkit services manager. If LuckPerms is not installed or not
+     * properly registered, this will return {@code null}.</p>
+     * 
+     * @return the LuckPerms API instance, or {@code null} if not available
+     * 
+     * @implNote This method is called during plugin initialization to
+     *           set up the LuckPerms integration hook.
      */
-    public CoreTagsCommand getCommandHandler() {
-        return commandHandler;
+    @Nullable
+    private LuckPerms getLuckPermsApi() {
+        RegisteredServiceProvider<LuckPerms> rsp = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+        return rsp == null ? null : rsp.getProvider();
     }
-    
+
     /**
-     * Check if the plugin is properly enabled with all dependencies
-     * @return True if enabled and all required hooks successful
+     * Gets the Vault Economy API instance if available.
+     * 
+     * <p>This method attempts to retrieve the Vault Economy API from the
+     * Bukkit services manager. If Vault is not installed or no economy
+     * plugin is registered, this will return {@code null}.</p>
+     * 
+     * @return the Economy API instance, or {@code null} if not available
+     * 
+     * @implNote This method is called during plugin initialization to
+     *           set up the Vault integration hook.
      */
-    public boolean isFullyEnabled() {
-        return enabled && registeredPlugin != null && registeredPlugin.areAllRequiredHooksSuccessful();
+    @Nullable
+    private Economy getVaultEconomy() {
+        RegisteredServiceProvider<Economy> rsp = Bukkit.getServicesManager().getRegistration(Economy.class);
+        return rsp == null ? null : rsp.getProvider();
     }
-    
-    // Convenience methods using DataProcessor modules
-    
+
     /**
-     * Check if debug mode is enabled
-     * @return true if debug is enabled
+     * Logs an informational message to the plugin logger.
+     * 
+     * @param msg the message to log
+     * 
+     * @implNote This is a convenience method to avoid direct logger access
+     *           throughout the codebase.
      */
-    public boolean isDebugEnabled() {
-        return dataProcessor != null && 
-               dataProcessor.getSystemDataModule() != null && 
-               dataProcessor.getSystemDataModule().isDebugEnabled();
+    private void info(@NotNull String msg) {
+        this.getLogger().log(Level.INFO, msg);
     }
-    
+
     /**
-     * Check if economy is enabled
-     * @return true if economy is enabled
+     * Logs a message at the specified level to the plugin logger.
+     * 
+     * @param level the logging level
+     * @param msg the message to log
+     * 
+     * @implNote This method includes null checking for safety and
+     *           should be used for all plugin logging operations.
      */
-    public boolean isEconomyEnabled() {
-        return dataProcessor != null && 
-               dataProcessor.getSystemDataModule() != null && 
-               dataProcessor.getSystemDataModule().isEconomyEnabled();
-    }
-    
-    /**
-     * Get the default modal type
-     * @return The default modal type
-     */
-    public String getDefaultModalType() {
-        return dataProcessor != null && dataProcessor.getSystemDataModule() != null ? 
-               dataProcessor.getSystemDataModule().getDefaultModalType() : "CATEGORY";
-    }
-    
-    /**
-     * Check if categories are enabled
-     * @return true if categories are enabled
-     */
-    public boolean areCategoriesEnabled() {
-        return dataProcessor != null && dataProcessor.getSystemDataModule() != null ? 
-               dataProcessor.getSystemDataModule().areCategoriesEnabled() : true;
-    }
-    
-    /**
-     * Check if modal should close on tag activation
-     * @return true if should close on activation
-     */
-    public boolean shouldCloseOnActivation() {
-        return dataProcessor != null && dataProcessor.getSystemDataModule() != null ? 
-               dataProcessor.getSystemDataModule().shouldCloseOnActivation() : false;
-    }
-    
-    /**
-     * Check if modal should close on tag unlock
-     * @return true if should close on unlock
-     */
-    public boolean shouldCloseOnUnlock() {
-        return dataProcessor != null && dataProcessor.getSystemDataModule() != null ? 
-               dataProcessor.getSystemDataModule().shouldCloseOnUnlock() : false;
-    }
-    
-    /**
-     * Check if back button should be swapped with close button
-     * @return true if should swap buttons
-     */
-    public boolean shouldSwapCloseButton() {
-        return dataProcessor != null && dataProcessor.getSystemDataModule() != null ? 
-               dataProcessor.getSystemDataModule().shouldSwapCloseButton() : true;
-    }
-    
-    /**
-     * Get a category's display name
-     * @param categoryId The category ID
-     * @return The display name
-     */
-    public String getCategoryDisplayName(String categoryId) {
-        return dataProcessor != null && dataProcessor.getCategoryModalDataModule() != null ? 
-               dataProcessor.getCategoryModalDataModule().getCategoryName(categoryId) : categoryId.toUpperCase();
-    }
-    
-    /**
-     * Get a tag's display name
-     * @param tagId The tag ID
-     * @return The display name
-     */
-    public String getTagDisplayName(String tagId) {
-        return dataProcessor != null && dataProcessor.getTagsModalDataModule() != null ? 
-               dataProcessor.getTagsModalDataModule().getTagName(tagId) : tagId.toUpperCase();
-    }
-    
-    /**
-     * Get the number of rows for category menu
-     * @return The number of rows
-     */
-    public int getCategoryMenuRows() {
-        return dataProcessor != null && dataProcessor.getBaseModalDataModule() != null ? 
-               dataProcessor.getBaseModalDataModule().getCategoryMenuRows() : 4;
-    }
-    
-    /**
-     * Get the number of rows for tags menu
-     * @return The number of rows
-     */
-    public int getTagsMenuRows() {
-        return dataProcessor != null && dataProcessor.getBaseModalDataModule() != null ? 
-               dataProcessor.getBaseModalDataModule().getTagsMenuRows() : 6;
-    }
-    
-    /**
-     * Get a condition/status label from language data
-     * @param condition The condition name
-     * @return The formatted label
-     */
-    public String getConditionLabel(String condition) {
-        return dataProcessor != null && dataProcessor.getLangDataModule() != null ? 
-               dataProcessor.getLangDataModule().getConditionLabel(condition) : condition.toUpperCase();
-    }
-    
-    /**
-     * Get a GUI title from language data
-     * @param titleKey The title key
-     * @return The title text
-     */
-    public String getGuiTitle(String titleKey) {
-        return dataProcessor != null && dataProcessor.getLangDataModule() != null ? 
-               dataProcessor.getLangDataModule().getGuiTitle(titleKey) : titleKey;
-    }
-    
-    /**
-     * Get a message from language data
-     * @param messageKey The message key
-     * @return The message text
-     */
-    public String getMessage(String messageKey) {
-        return dataProcessor != null && dataProcessor.getLangDataModule() != null ? 
-               dataProcessor.getLangDataModule().getMessage(messageKey) : messageKey;
+    private void log(@NotNull Level level, @NotNull String msg) {
+        if (this.getLogger() != null) {
+            this.getLogger().log(level, msg);
+        }
     }
 }

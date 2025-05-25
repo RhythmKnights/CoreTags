@@ -1,144 +1,105 @@
 package io.rhythmknights.coretags.component.modal;
 
+import io.rhythmknights.coreframework.util.TextUtility;
 import io.rhythmknights.coretags.CoreTags;
-import io.rhythmknights.coretags.component.modal.builder.CategoryBuilder;
-import io.rhythmknights.coreapi.component.modal.Modal;
-import io.rhythmknights.coreframework.component.utility.TextUtility;
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Player;
+import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 
-/**
- * Handles the category selection modal for CoreTags
- * Delegates building logic to CategoryBuilder
- */
-public class CategoryModal {
-    
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
+public final class CategoryModal {
     private final CoreTags plugin;
-    private final ModalProcessor modalProcessor;
-    private final CategoryBuilder categoryBuilder;
-    
-    /**
-     * Constructor for CategoryModal
-     * 
-     * @param plugin The CoreTags plugin instance
-     * @param modalProcessor The modal processor for navigation
-     */
-    public CategoryModal(CoreTags plugin, ModalProcessor modalProcessor) {
+    private final TextUtility textUtility;
+    private final Map<String, TagCategory> byKey = new HashMap<>();
+    private final File ymlFile;
+
+    public CategoryModal(CoreTags plugin) {
         this.plugin = plugin;
-        this.modalProcessor = modalProcessor;
-        this.categoryBuilder = new CategoryBuilder(plugin, this);
+        this.textUtility = plugin.textUtility();
+        this.ymlFile = new File(plugin.getDataFolder(), "components/categories.yml");
+        plugin.saveResource("components/categories.yml", false);
+        this.reload();
     }
-    
-    /**
-     * Opens the category modal for a player
-     * 
-     * @param player The player to open the modal for
-     */
-    public void open(Player player) {
-        // Get title from language config
-        String titleKey = "settings.system.gui.titles.category-menu";
-        String titleText = plugin.getInternalConfig().getString(titleKey, "<gold>Tags</gold> <dark_grey>|</dark_grey> <gold>Categories</gold>");
-        String processedTitle = plugin.replaceVariables(titleText);
-        
-        // Get number of rows from config
-        int rows = plugin.getInternalConfig().getInt("gui.category-menu.rows", 4);
-        rows = Math.max(1, Math.min(6, rows)); // Clamp between 1-6
-        
-        // Create the modal using CoreAPI - parse title with TextUtility
-        Modal modal;
+
+    public void reload() {
+        this.byKey.clear();
+        YamlConfiguration yaml = new YamlConfiguration();
+
         try {
-            Component titleComponent = TextUtility.parse(processedTitle);
-            modal = Modal.modal()
-                .title(titleComponent)
-                .rows(rows)
-                .disableAllInteractions() // Prevent item manipulation
-                .create();
-        } catch (Exception e) {
-            // Fallback with basic title
-            plugin.getLogger().warning("Failed to set modal title, using fallback: " + e.getMessage());
-            modal = Modal.modal()
-                .rows(rows)
-                .disableAllInteractions()
-                .create();
+            yaml.load(this.ymlFile);
+        } catch (IOException | InvalidConfigurationException e) {
+            this.plugin.getLogger().severe("Failed to load components/categories.yml: " + e.getMessage());
+            return;
         }
+
+        ConfigurationSection root = yaml.getConfigurationSection("settings.categories");
+        if (root == null) {
+            this.plugin.getLogger().warning("No 'settings.categories' root found in categories.yml.");
+            return;
+        }
+
+        for (String key : root.getKeys(false)) {
+            ConfigurationSection categorySection = root.getConfigurationSection(key);
+            if (categorySection != null) {
+                this.loadCategory(key, categorySection);
+            }
+        }
+
+        this.plugin.getLogger().info("Loaded " + this.byKey.size() + " tag categories.");
+    }
+
+    private void loadCategory(String key, ConfigurationSection section) {
+        int slot = section.getInt("slot", -1);
+        if (slot < -1 || slot > 53) {
+            this.plugin.getLogger().warning("Invalid slot " + slot + " for category " + key + ", skipping.");
+            return;
+        }
+
+        Material icon = this.parseMaterial(section.getString("material", "STONE"));
         
-        // Let the builder populate the modal
-        categoryBuilder.buildModal(modal, player);
-        
-        // Set up close action
-        modal.setCloseModalAction(event -> {
-            String closeMessage = plugin.getInternalConfig().getString("messages.modal.category-closed",
-                "<grey>Category menu closed.</grey>");
-            TextUtility.sendPlayerMessage(player, plugin.replaceVariables(closeMessage));
-        });
-        
-        // Open the modal
-        modal.open(player);
-        
-        // Log if debug is enabled
-        if (plugin.getInternalConfig().getBoolean("settings.system.debug", false)) {
-            plugin.getLogger().info("Opened category modal for player: " + player.getName());
+        // Parse display name and lore using TextUtility
+        Component displayName = this.textUtility.parseText(section.getString("name", key));
+        List<Component> lore = section.getStringList("lore").stream()
+                .map(this.textUtility::parseText)
+                .toList();
+
+        String permission = section.getString("permission", "coretags.category." + key.toLowerCase(Locale.ROOT));
+        boolean isProtected = section.getBoolean("protected", false);
+
+        TagCategory category = new TagCategory(key, slot, icon, displayName, lore, permission, isProtected);
+        this.byKey.put(key.toLowerCase(Locale.ROOT), category);
+    }
+
+    private Material parseMaterial(String rawMaterial) {
+        try {
+            return Material.valueOf(rawMaterial.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            this.plugin.getLogger().warning("Invalid material '" + rawMaterial + "' for category, using STONE as fallback");
+            return Material.STONE;
         }
     }
-    
-    /**
-     * Handles category selection
-     * Called by CategoryBuilder when a category is clicked
-     * 
-     * @param player The player who selected the category
-     * @param categoryId The ID of the selected category
-     */
-    public void handleCategoryClick(Player player, String categoryId) {
-        // Close current modal
-        player.closeInventory();
-        
-        // Send selection message if configured
-        String selectionMessage = plugin.getInternalConfig().getString("messages.modal.category-selected",
-            "<grey>Selected category:</grey> <gold>{category}</gold>");
-        if (selectionMessage != null && !selectionMessage.isEmpty()) {
-            String categoryName = getCategoryDisplayName(categoryId);
-            selectionMessage = selectionMessage.replace("{category}", categoryName);
-            TextUtility.sendPlayerMessage(player, plugin.replaceVariables(selectionMessage));
-        }
-        
-        // Delegate to modal processor
-        modalProcessor.handleCategorySelection(player, categoryId);
+
+    public Collection<TagCategory> all() {
+        return Collections.unmodifiableCollection(this.byKey.values());
     }
-    
-    /**
-     * Gets the display name for a category
-     * 
-     * @param categoryId The category ID
-     * @return The display name for the category
-     */
-    private String getCategoryDisplayName(String categoryId) {
-        // Try to get the name from category config
-        String nameKey = "category." + categoryId + ".name";
-        String name = plugin.getInternalConfig().getString(nameKey, null);
-        
-        if (name != null) {
-            return TextUtility.processMessage(name); // Process any variables
-        }
-        
-        // Fallback to capitalized ID
-        return categoryId.substring(0, 1).toUpperCase() + categoryId.substring(1).toLowerCase();
+
+    public Optional<TagCategory> byKey(String key) {
+        return Optional.ofNullable(this.byKey.get(key.toLowerCase(Locale.ROOT)));
     }
-    
-    /**
-     * Gets the modal processor
-     * 
-     * @return The modal processor
-     */
-    public ModalProcessor getModalProcessor() {
-        return modalProcessor;
-    }
-    
-    /**
-     * Gets the plugin instance
-     * 
-     * @return The CoreTags plugin instance
-     */
-    public CoreTags getPlugin() {
-        return plugin;
+
+    public record TagCategory(
+            String key,
+            int slot,
+            Material icon,
+            Component displayName,
+            List<Component> lore,
+            String permission,
+            boolean isProtected
+    ) {
     }
 }
