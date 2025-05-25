@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Builds the tags selection modal interface
+ * Builds the tags selection modal interface with enhanced sorting functionality
  * Uses CoreFramework's TextUtility directly for all text parsing
  */
 public class TagsBuilder {
@@ -54,7 +54,7 @@ public class TagsBuilder {
         // Add control buttons (navigation, sorting, etc.)
         addControlButtons(modal, player, categoryId);
         
-        // Add tag items (these go into the paginated area)
+        // Add tag items (these go into the paginated area) - now with filtering
         addTagItems(modal, player, categoryId);
     }
     
@@ -191,9 +191,354 @@ public class TagsBuilder {
             (action.equals("previous") ? "last-page-button" : "next-page-button") + ".material", defaultMaterial);
         Material material = Material.valueOf(materialName.toUpperCase());
         
-        // Process title with label replacement and proper formatting
-        String processedTitle = plugin.replaceVariables(title);
-        processedTitle = replaceLabelPlaceholders(processedTitle);
+        // Process title through DataProcessor for centralized variable replacement
+        String processedTitle = plugin.getDataProcessor().replaceVariables(title);
+        Component titleComponent = formatTooltipText(processedTitle);
+        
+        ItemBuilder itemBuilder = ItemBuilder.from(material)
+            .amount(1)
+            .name(titleComponent);
+        
+        ModalItem navItem = itemBuilder.asModalItem(event -> {
+            if (action.equals("previous")) {
+                if (modal.previous()) {
+                    // Successfully went to previous page
+                } else {
+                    String message = plugin.getInternalConfig().getString("messages.modal.no-previous-page",
+                        "<red>You are already on the first page.</red>");
+                    TextUtility.sendPlayerMessage(player, plugin.getDataProcessor().replaceVariables(message));
+                }
+            } else {
+                if (modal.next()) {
+                    // Successfully went to next page
+                } else {
+                    String message = plugin.getInternalConfig().getString("messages.modal.no-next-page",
+                        "<red>You are already on the last page.</red>");
+                    TextUtility.sendPlayerMessage(player, plugin.getDataProcessor().replaceVariables(message));
+                }
+            }
+        });
+        
+        if (slot >= 0 && slot < modal.getRows() * 9) {
+            modal.setItem(slot, navItem);
+        }
+    }
+    
+    /**
+     * Adds sorting buttons (category, favorite, color)
+     * 
+     * @param modal The modal to add buttons to
+     * @param player The player the modal is for
+     * @param categoryId The current category
+     */
+    private void addSortingButtons(PaginatedModal modal, Player player, String categoryId) {
+        // Category sort button
+        boolean categoryEnabled = plugin.getInternalConfig().getBoolean("gui.layout.items.category-sort-button.enabled", true);
+        if (categoryEnabled) {
+            int slot = plugin.getInternalConfig().getInt("gui.layout.items.category-sort-button.slot", 17);
+            addSortButton(modal, player, slot, "category", categoryId);
+        }
+        
+        // Favorite sort button
+        boolean favoriteEnabled = plugin.getInternalConfig().getBoolean("gui.layout.items.favorite-sort-button.enabled", true);
+        if (favoriteEnabled) {
+            int slot = plugin.getInternalConfig().getInt("gui.layout.items.favorite-sort-button.slot", 26);
+            addSortButton(modal, player, slot, "favorite", categoryId);
+        }
+        
+        // Color sort button
+        boolean colorEnabled = plugin.getInternalConfig().getBoolean("gui.layout.items.color-sort-button.enabled", true);
+        if (colorEnabled) {
+            int slot = plugin.getInternalConfig().getInt("gui.layout.items.color-sort-button.slot", 35);
+            addSortButton(modal, player, slot, "color", categoryId);
+        }
+    }
+    
+    /**
+     * Adds a sorting button with current state display
+     * Uses proper tooltip formatting and shows current filter state
+     * 
+     * @param modal The modal to add the button to
+     * @param player The player the modal is for
+     * @param slot The slot to place the button in
+     * @param sortType The type of sorting (category/favorite/color)
+     * @param categoryId The current category
+     */
+    private void addSortButton(PaginatedModal modal, Player player, int slot, String sortType, String categoryId) {
+        // Get current sort state
+        TagsModal.SortState sortState = tagsModal.getPlayerSortState(player);
+        
+        // Get material based on sort type and theme settings
+        String materialName = getSortButtonMaterial(sortType, sortState, categoryId);
+        Material material = Material.valueOf(materialName.toUpperCase());
+        
+        // Get title with current state information
+        String title = getSortButtonTitle(sortType, sortState);
+        String processedTitle = plugin.getDataProcessor().replaceVariables(title);
+        Component titleComponent = formatTooltipText(processedTitle);
+        
+        // Get lore with current state and controls
+        List<String> loreStrings = getSortButtonLore(sortType, sortState);
+        List<Component> loreComponents = new ArrayList<>();
+        for (String loreString : loreStrings) {
+            String processedLore = plugin.getDataProcessor().replaceVariables(loreString);
+            loreComponents.add(formatTooltipText(processedLore));
+        }
+        
+        ItemBuilder itemBuilder = ItemBuilder.from(material)
+            .amount(1)
+            .name(titleComponent)
+            .lore(loreComponents);
+        
+        // Add custom model data and glow if configured
+        addSortButtonEffects(itemBuilder, sortType, sortState);
+        
+        ModalItem sortItem = itemBuilder.asModalItem(event -> {
+            handleSortButtonClick(player, sortType, event.getClick());
+        });
+        
+        if (slot >= 0 && slot < modal.getRows() * 9) {
+            modal.setItem(slot, sortItem);
+        }
+    }
+    
+    /**
+     * Gets the material for a sort button based on type, state, and theme
+     * 
+     * @param sortType The sort type
+     * @param sortState The current sort state
+     * @param categoryId The current category (for category button theming)
+     * @return Material name
+     */
+    private String getSortButtonMaterial(String sortType, TagsModal.SortState sortState, String categoryId) {
+        String buttonType = plugin.getInternalConfig().getString("settings.system.modal.tags." + sortType + "-sort-button", "BASIC");
+        
+        if ("THEME".equalsIgnoreCase(buttonType) && sortState != null) {
+            String themePath = "gui.layout.items." + sortType + "-sort-button-themed.material.";
+            
+            if ("category".equals(sortType)) {
+                // Use current category for theming
+                themePath += sortState.getCurrentCategory().toLowerCase();
+            } else if ("color".equals(sortType)) {
+                // Use current color for theming
+                themePath += sortState.getCurrentColor().toLowerCase();
+            } else {
+                themePath += "all"; // Default theme for favorite button
+            }
+            
+            return plugin.getInternalConfig().getString(themePath + ".material", getDefaultSortMaterial(sortType));
+        } else {
+            // Use basic material
+            return plugin.getInternalConfig().getString("gui.layout.items." + sortType + "-sort-button.material", getDefaultSortMaterial(sortType));
+        }
+    }
+    
+    /**
+     * Gets the default material for a sort button type
+     * 
+     * @param sortType The sort type
+     * @return Default material name
+     */
+    private String getDefaultSortMaterial(String sortType) {
+        switch (sortType) {
+            case "category":
+                return "GOLD_BLOCK";
+            case "favorite":
+                return "NETHER_STAR";
+            case "color":
+                return "BRUSH";
+            default:
+                return "STONE";
+        }
+    }
+    
+    /**
+     * Gets the title for a sort button showing current state
+     * 
+     * @param sortType The sort type
+     * @param sortState The current sort state
+     * @return The button title
+     */
+    private String getSortButtonTitle(String sortType, TagsModal.SortState sortState) {
+        String baseTitle;
+        String currentValue = "";
+        
+        switch (sortType) {
+            case "category":
+                baseTitle = plugin.getInternalConfig().getString("settings.system.gui.titles.category-sort-button", 
+                    "<grey>CATEGORY</grey> <dark_grey>•</dark_grey> {category}");
+                if (sortState != null) {
+                    currentValue = getCategoryDisplayName(sortState.getCurrentCategory());
+                }
+                return baseTitle.replace("{category}", currentValue);
+                
+            case "color":
+                baseTitle = plugin.getInternalConfig().getString("settings.system.gui.titles.color-sort-button", 
+                    "<grey>COLOR</grey> <dark_grey>•</dark_grey> {color}");
+                if (sortState != null) {
+                    currentValue = getColorDisplayName(sortState.getCurrentColor());
+                }
+                return baseTitle.replace("{color}", currentValue);
+                
+            case "favorite":
+            default:
+                return plugin.getInternalConfig().getString("settings.system.gui.titles.favorite-sort-button", 
+                    "<grey>FAVORITES</grey>");
+        }
+    }
+    
+    /**
+     * Gets the lore for a sort button with controls and current state
+     * 
+     * @param sortType The sort type
+     * @param sortState The current sort state
+     * @return List of lore strings
+     */
+    private List<String> getSortButtonLore(String sortType, TagsModal.SortState sortState) {
+        List<String> lore = new ArrayList<>();
+        
+        // Get base lore from config
+        List<String> baseLore = plugin.getInternalConfig().getStringList("settings.system.gui.lore." + sortType + "-sort-button");
+        
+        if ("category".equals(sortType) || "color".equals(sortType)) {
+            // Add current state info
+            if (sortState != null) {
+                String currentFilter = "category".equals(sortType) ? 
+                    getCategoryDisplayName(sortState.getCurrentCategory()) : 
+                    getColorDisplayName(sortState.getCurrentColor());
+                
+                lore.add("<grey>Current " + sortType + ":</grey> " + currentFilter);
+                lore.add("");
+            }
+            
+            // Add controls
+            lore.addAll(baseLore);
+        } else {
+            // Favorite button - simpler lore
+            lore.addAll(baseLore);
+        }
+        
+        return lore;
+    }
+    
+    /**
+     * Adds visual effects to sort buttons based on configuration
+     * 
+     * @param itemBuilder The item builder to modify
+     * @param sortType The sort type
+     * @param sortState The current sort state
+     */
+    private void addSortButtonEffects(ItemBuilder itemBuilder, String sortType, TagsModal.SortState sortState) {
+        String buttonType = plugin.getInternalConfig().getString("settings.system.modal.tags." + sortType + "-sort-button", "BASIC");
+        
+        if ("THEME".equalsIgnoreCase(buttonType) && sortState != null) {
+            String effectPath = "gui.layout.items." + sortType + "-sort-button-themed.material.";
+            
+            if ("category".equals(sortType)) {
+                effectPath += sortState.getCurrentCategory().toLowerCase();
+            } else if ("color".equals(sortType)) {
+                effectPath += sortState.getCurrentColor().toLowerCase();
+            } else {
+                effectPath += "all";
+            }
+            
+            // Add custom model data
+            int customModelData = plugin.getInternalConfig().getInt(effectPath + ".custom-model-data", -1);
+            if (customModelData != -1) {
+                itemBuilder.model(customModelData);
+            }
+            
+            // Add glow
+            boolean glow = plugin.getInternalConfig().getBoolean(effectPath + ".glow", false);
+            if (glow) {
+                itemBuilder.glow();
+            }
+        } else {
+            // Use basic effects
+            int customModelData = plugin.getInternalConfig().getInt("gui.layout.items." + sortType + "-sort-button.custom-model-data", -1);
+            if (customModelData != -1) {
+                itemBuilder.model(customModelData);
+            }
+            
+            boolean glow = plugin.getInternalConfig().getBoolean("gui.layout.items." + sortType + "-sort-button.glow", false);
+            if (glow) {
+                itemBuilder.glow();
+            }
+        }
+    }
+    
+    /**
+     * Handles sort button clicks with proper navigation logic
+     * 
+     * @param player The player who clicked
+     * @param sortType The sort type
+     * @param clickType The click type
+     */
+    private void handleSortButtonClick(Player player, String sortType, ClickType clickType) {
+        String direction;
+        
+        switch (clickType) {
+            case LEFT:
+                direction = "next";
+                break;
+            case RIGHT:
+                direction = "previous";
+                break;
+            case SHIFT_LEFT:
+                direction = "first";
+                break;
+            case SHIFT_RIGHT:
+                direction = "last";
+                break;
+            default:
+                return; // Ignore other click types
+        }
+        
+        // Delegate to TagsModal for navigation handling
+        tagsModal.handleSortNavigation(player, sortType, direction);
+    }
+    
+    /**
+     * Adds utility buttons (reset tag, active tag display)
+     * 
+     * @param modal The modal to add buttons to
+     * @param player The player the modal is for
+     * @param categoryId The current category
+     */
+    private void addUtilityButtons(PaginatedModal modal, Player player, String categoryId) {
+        // Reset tag button
+        boolean resetEnabled = plugin.getInternalConfig().getBoolean("gui.layout.items.reset-tag-button.enabled", true);
+        if (resetEnabled) {
+            int slot = plugin.getInternalConfig().getInt("gui.layout.items.reset-tag-button.slot.tags-menu", 49);
+            addUtilityButton(modal, player, slot, "reset");
+        }
+        
+        // Active tag display
+        boolean activeEnabled = plugin.getInternalConfig().getBoolean("gui.layout.items.active-tag.enabled", true);
+        if (activeEnabled) {
+            int slot = plugin.getInternalConfig().getInt("gui.layout.items.active-tag.slot.tags-menu", 53);
+            addUtilityButton(modal, player, slot, "active");
+        }
+    }
+    
+    /**
+     * Adds a utility button
+     * Uses proper tooltip formatting
+     * 
+     * @param modal The modal to add the button to
+     * @param player The player the modal is for
+     * @param slot The slot to place the button in
+     * @param buttonType The button type (reset/active)
+     */
+    private void addUtilityButton(PaginatedModal modal, Player player, int slot, String buttonType) {
+        String materialName = plugin.getInternalConfig().getString("gui.layout.items." + buttonType + "-tag-button.material", 
+            buttonType.equals("reset") ? "RED_DYE" : "NAME_TAG");
+        Material material = Material.valueOf(materialName.toUpperCase());
+        
+        String titleKey = "settings.system.gui.titles." + buttonType + "-tag";
+        String title = plugin.getInternalConfig().getString(titleKey, 
+            buttonType.equals("reset") ? "<red>Reset Tag</red>" : "<gold>Active Tag</gold>");
+        String processedTitle = plugin.getDataProcessor().replaceVariables(title);
         Component titleComponent = formatTooltipText(processedTitle);
         
         ItemBuilder itemBuilder = ItemBuilder.from(material)
@@ -255,8 +600,7 @@ public class TagsBuilder {
         }
         
         Material material = Material.valueOf(materialName.toUpperCase());
-        String processedTitle = plugin.replaceVariables(title);
-        processedTitle = replaceLabelPlaceholders(processedTitle);
+        String processedTitle = plugin.getDataProcessor().replaceVariables(title);
         Component titleComponent = formatTooltipText(processedTitle);
         
         ItemBuilder itemBuilder = ItemBuilder.from(material)
@@ -264,7 +608,7 @@ public class TagsBuilder {
             .name(titleComponent);
         
         ModalItem backItem = itemBuilder.asModalItem(event -> {
-            tagsModal.handleBackClick(player);
+            handleBackClick(player);
         });
         
         if (slot >= 0 && slot < modal.getRows() * 9) {
@@ -273,7 +617,30 @@ public class TagsBuilder {
     }
     
     /**
-     * Adds tag items to the paginated area
+     * Handles back button click
+     * 
+     * @param player The player who clicked
+     */
+    private void handleBackClick(Player player) {
+        // Check if we should show categories or close entirely
+        String defaultModal = plugin.getInternalConfig().getString("settings.system.modal.default", "CATEGORY");
+        boolean categoriesEnabled = plugin.getInternalConfig().getBoolean("settings.system.modal.category.enabled", true);
+        
+        if ("CATEGORY".equalsIgnoreCase(defaultModal) && categoriesEnabled) {
+            // Go back to category modal - delegate to modal processor
+            tagsModal.getModalProcessor().handleBackToCategories(player);
+        } else {
+            // Just close the modal
+            player.closeInventory();
+            
+            String closeMessage = plugin.getInternalConfig().getString("messages.modal.closed",
+                "<grey>Menu closed.</grey>");
+            TextUtility.sendPlayerMessage(player, plugin.getDataProcessor().replaceVariables(closeMessage));
+        }
+    }
+    
+    /**
+     * Adds tag items to the paginated area with filtering based on current sort state
      * 
      * @param modal The modal to add items to
      * @param player The player the modal is for
@@ -292,6 +659,7 @@ public class TagsBuilder {
                 continue;
             }
             
+            // Check if tag should be shown based on permissions and filters
             if (shouldShowTag(player, tagId, categoryId)) {
                 ModalItem tagItem = createTagItem(player, tagId);
                 if (tagItem != null) {
@@ -302,7 +670,7 @@ public class TagsBuilder {
     }
     
     /**
-     * Checks if a tag should be shown for the given category and player
+     * Checks if a tag should be shown for the given category and player with current filters
      * 
      * @param player The player
      * @param tagId The tag ID
@@ -326,23 +694,15 @@ public class TagsBuilder {
             return false;
         }
         
-        // Check category filter
-        if (!"all".equalsIgnoreCase(categoryId)) {
-            String tagNode = tag.getString("node", "");
-            String expectedNode = "category." + categoryId.toLowerCase();
-            if (!expectedNode.equals(tagNode)) {
-                return false;
-            }
-        }
-        
         // Check availability
         String availabilityType = tag.getString("availablity.type", "ALWAYS");
         if (!"ALWAYS".equalsIgnoreCase(availabilityType)) {
             // TODO: Implement time-based availability checking
-            return true; // For now, show all non-ALWAYS tags
+            // For now, show all non-ALWAYS tags
         }
         
-        return true;
+        // Apply current sort filters
+        return tagsModal.shouldShowTagWithFilters(player, tagId);
     }
     
     /**
@@ -365,16 +725,14 @@ public class TagsBuilder {
         
         // Get display name with proper formatting
         String name = tag.getString("name", tagId);
-        String processedName = plugin.replaceVariables(name);
-        processedName = replaceLabelPlaceholders(processedName);
+        String processedName = plugin.getDataProcessor().replaceVariables(name);
         Component nameComponent = formatTooltipText(processedName);
         
         // Get lore (combine description with controls) with proper formatting
         List<String> loreStrings = buildTagLore(player, tagId, tag);
         List<Component> loreComponents = new ArrayList<>();
         for (String loreString : loreStrings) {
-            String processedLore = plugin.replaceVariables(loreString);
-            processedLore = replaceLabelPlaceholders(processedLore);
+            String processedLore = plugin.getDataProcessor().replaceVariables(loreString);
             loreComponents.add(formatTooltipText(processedLore));
         }
         
@@ -413,6 +771,9 @@ public class TagsBuilder {
         // TODO: Determine tag status (active, unlocked, locked, protected)
         String tagStatus = "unlocked"; // Placeholder
         
+        // Get styled status label from language config
+        String styledStatus = plugin.getInternalConfig().getString("settings.system.conditions." + tagStatus, tagStatus.toUpperCase());
+        
         // Get lore template from language config
         String loreKey = "settings.system.gui.lore." + tagStatus;
         List<String> loreTemplate = plugin.getInternalConfig().getStringList(loreKey);
@@ -422,9 +783,9 @@ public class TagsBuilder {
             String processedLine = loreLine
                 .replace("{tag.display}", tag.getString("display", ""))
                 .replace("{tag.lore}", String.join(" ", tag.getStringList("lore")))
-                .replace("{tag.status}", tagStatus);
+                .replace("{tag.status}", styledStatus);
             
-            // Will be processed again by replaceLabelPlaceholders and formatTooltipText
+            // Will be processed again by DataProcessor for all other variables
             lore.add(processedLine);
         }
         
@@ -453,6 +814,34 @@ public class TagsBuilder {
     }
     
     /**
+     * Gets the display name for a category
+     * 
+     * @param categoryId The category ID
+     * @return The display name for the category
+     */
+    private String getCategoryDisplayName(String categoryId) {
+        String nameKey = "category." + categoryId + ".name";
+        String name = plugin.getCategoryConfig().getString(nameKey, null);
+        
+        if (name != null) {
+            return TextUtility.processMessage(name);
+        }
+        
+        return categoryId.substring(0, 1).toUpperCase() + categoryId.substring(1).toLowerCase();
+    }
+    
+    /**
+     * Gets the display name for a color
+     * 
+     * @param colorId The color ID
+     * @return The display name for the color
+     */
+    private String getColorDisplayName(String colorId) {
+        String colorText = plugin.getInternalConfig().getString("settings.system.colors." + colorId + ".text", colorId.toUpperCase());
+        return TextUtility.processMessage(colorText);
+    }
+    
+    /**
      * Handles reset tag button click
      * 
      * @param player The player who clicked
@@ -461,7 +850,7 @@ public class TagsBuilder {
         // TODO: Implement tag reset logic
         String message = plugin.getInternalConfig().getString("messages.tag.reset",
             "<grey>Tag reset to default.</grey>");
-        TextUtility.sendPlayerMessage(player, plugin.replaceVariables(message));
+        TextUtility.sendPlayerMessage(player, plugin.getDataProcessor().replaceVariables(message));
     }
     
     /**
@@ -474,7 +863,7 @@ public class TagsBuilder {
         String message = plugin.getInternalConfig().getString("messages.tag.active-info",
             "<yellow>Your active tag:</yellow> <gold>{tag}</gold>");
         message = message.replace("{tag}", "None"); // Placeholder
-        TextUtility.sendPlayerMessage(player, plugin.replaceVariables(message));
+        TextUtility.sendPlayerMessage(player, plugin.getDataProcessor().replaceVariables(message));
     }
     
     /**
@@ -486,50 +875,10 @@ public class TagsBuilder {
     private Component formatTooltipText(String text) {
         // Parse the text with TextUtility first to get all the formatting
         Component component = TextUtility.parse(text);
-        
-        // Override italic to false (remove default italic) and ensure proper formatting
-        return component.decoration(TextDecoration.ITALIC, false);
-    }
-    
-    /**
-     * Replace label placeholders with their actual values from config
-     * 
-     * @param text The text containing placeholders
-     * @return Text with placeholders replaced
-     */
-    private String replaceLabelPlaceholders(String text) {
-        // Status labels
-        text = text.replace("{unlocked}", plugin.getInternalConfig().getString("settings.system.conditions.unlocked", "<green>UNLOCKED</green>"));
-        text = text.replace("{locked}", plugin.getInternalConfig().getString("settings.system.conditions.locked", "<red>LOCKED</red>"));
-        text = text.replace("{protected}", plugin.getInternalConfig().getString("settings.system.conditions.protected", "<dark_purple>PROTECTED</dark_purple>"));
-        text = text.replace("{favorite}", plugin.getInternalConfig().getString("settings.system.conditions.favorite", "<aqua>FAVORITE</aqua>"));
-        text = text.replace("{favorites}", plugin.getInternalConfig().getString("settings.system.conditions.favorite", "<aqua>FAVORITE</aqua>"));
-        text = text.replace("{all}", plugin.getInternalConfig().getString("settings.system.colors.all.text", "<gold>ALL</gold>"));
-        text = text.replace("{active}", plugin.getInternalConfig().getString("settings.system.conditions.active", "<gold>ACTIVE</gold>"));
-        
-        // Colors
-        text = text.replace("{colors.all}", plugin.getInternalConfig().getString("settings.system.colors.all.text", "<gold>ALL</gold>"));
-        text = text.replace("{colors.multi}", plugin.getInternalConfig().getString("settings.system.colors.multi.text", "<blue>M</blue><green>U</green><yellow>L</yellow><red>T</red><light_purple>I</light_purple>"));
-        text = text.replace("{color}", plugin.getInternalConfig().getString("settings.system.colors.multi.text", "<blue>M</blue><green>U</green><yellow>L</yellow><red>T</red><light_purple>I</light_purple>"));
-        
-        // GUI controls - get from settings
-        text = text.replace("{gui.leftclick}", plugin.getInternalConfig().getString("settings.system.controls.gui.leftclick", "<grey>⏵</grey> <white>⸶</white> <#2ECC71>ʟᴇꜰᴛ ᴄʟɪᴄᴋ</#2ECC71> • {setactive}"));
-        text = text.replace("{gui.rightclick}", plugin.getInternalConfig().getString("settings.system.controls.gui.rightclick", "<grey>⏵</grey> <white>⸷</white> <#2ECC71>ʀɪɢʜᴛ ᴄʟɪᴄᴋ</#2ECC71> • {togglefavorite}"));
-        text = text.replace("{gui.shiftleftclick}", plugin.getInternalConfig().getString("settings.system.controls.gui.shiftleftclick", "<grey>⏵</grey> <#2ECC71>ꜱʜɪꜰᴛ</#2ECC71> <grey>+</grey> <white>⸶</white> <#2ECC71>ʟᴇꜰᴛ ᴄʟɪᴄᴋ</#2ECC71> • {unlocktag}"));
-        text = text.replace("{gui.shiftrightclick}", plugin.getInternalConfig().getString("settings.system.controls.gui.shiftrightclick", "<grey>⏵</grey> <#2ECC71>ꜱʜɪꜰᴛ</#2ECC71> <grey>+</grey> <white>⸷</white> <#2ECC71>ʀɪɢʜᴛ ᴄʟɪᴄᴋ</#2ECC71> • {activefavorite}"));
-        
-        // Action labels
-        text = text.replace("{setactive}", plugin.getInternalConfig().getString("settings.system.gui.labels.setactive", "<gold>[Set as active tag]</gold>"));
-        text = text.replace("{togglefavorite}", plugin.getInternalConfig().getString("settings.system.gui.labels.togglefavorite.add", "<gold>[Set favorite]</gold>"));
-        text = text.replace("{unlocktag}", plugin.getInternalConfig().getString("settings.system.gui.labels.unlocktag", "<gold>[Unlock tag]</gold>"));
-        text = text.replace("{activefavorite}", plugin.getInternalConfig().getString("settings.system.gui.labels.activefavorite", "<gold>[Set as active tag + favorite]</gold>"));
-        
-        // Pagination labels
-        text = text.replace("{currentpage}", "1"); // TODO: Get actual current page
-        text = text.replace("{totalpages}", "1"); // TODO: Get actual total pages  
-        text = text.replace("{activetag}", "None"); // TODO: Get actual active tag
-        
-        return text;
+
+        // Override italic to false and set default color to white
+        return component.decoration(TextDecoration.ITALIC, false)
+                       .colorIfAbsent(net.kyori.adventure.text.format.NamedTextColor.WHITE);
     }
     
     /**
@@ -581,195 +930,4 @@ public class TagsBuilder {
         
         return slots;
     }
-}(material)
-            .amount(1)
-            .name(titleComponent);
-        
-        ModalItem navItem = itemBuilder.asModalItem(event -> {
-            if (action.equals("previous")) {
-                if (modal.previous()) {
-                    // Successfully went to previous page
-                } else {
-                    String message = plugin.getInternalConfig().getString("messages.modal.no-previous-page",
-                        "<red>You are already on the first page.</red>");
-                    TextUtility.sendPlayerMessage(player, plugin.replaceVariables(message));
-                }
-            } else {
-                if (modal.next()) {
-                    // Successfully went to next page
-                } else {
-                    String message = plugin.getInternalConfig().getString("messages.modal.no-next-page",
-                        "<red>You are already on the last page.</red>");
-                    TextUtility.sendPlayerMessage(player, plugin.replaceVariables(message));
-                }
-            }
-        });
-        
-        if (slot >= 0 && slot < modal.getRows() * 9) {
-            modal.setItem(slot, navItem);
-        }
-    }
-    
-    /**
-     * Adds sorting buttons (category, favorite, color)
-     * 
-     * @param modal The modal to add buttons to
-     * @param player The player the modal is for
-     * @param categoryId The current category
-     */
-    private void addSortingButtons(PaginatedModal modal, Player player, String categoryId) {
-        // Category sort button
-        boolean categoryEnabled = plugin.getInternalConfig().getBoolean("gui.layout.items.category-sort-button.enabled", true);
-        if (categoryEnabled) {
-            int slot = plugin.getInternalConfig().getInt("gui.layout.items.category-sort-button.slot", 17);
-            addSortButton(modal, player, slot, "category", categoryId);
-        }
-        
-        // Favorite sort button
-        boolean favoriteEnabled = plugin.getInternalConfig().getBoolean("gui.layout.items.favorite-sort-button.enabled", true);
-        if (favoriteEnabled) {
-            int slot = plugin.getInternalConfig().getInt("gui.layout.items.favorite-sort-button.slot", 26);
-            addSortButton(modal, player, slot, "favorite", categoryId);
-        }
-        
-        // Color sort button
-        boolean colorEnabled = plugin.getInternalConfig().getBoolean("gui.layout.items.color-sort-button.enabled", true);
-        if (colorEnabled) {
-            int slot = plugin.getInternalConfig().getInt("gui.layout.items.color-sort-button.slot", 35);
-            addSortButton(modal, player, slot, "color", categoryId);
-        }
-    }
-    
-    /**
-     * Adds a sorting button
-     * Uses proper tooltip formatting
-     * 
-     * @param modal The modal to add the button to
-     * @param player The player the modal is for
-     * @param slot The slot to place the button in
-     * @param sortType The type of sorting (category/favorite/color)
-     * @param categoryId The current category
-     */
-    private void addSortButton(PaginatedModal modal, Player player, int slot, String sortType, String categoryId) {
-        // Get material based on sort type and theme settings
-        String materialName = getSortButtonMaterial(sortType, categoryId);
-        Material material = Material.valueOf(materialName.toUpperCase());
-        
-        // Get title with proper formatting
-        String titleKey = "settings.system.gui.titles." + sortType + "-sort-button";
-        String title = plugin.getInternalConfig().getString(titleKey, "<grey>" + sortType.toUpperCase() + "</grey>");
-        String processedTitle = plugin.replaceVariables(title);
-        processedTitle = replaceLabelPlaceholders(processedTitle);
-        Component titleComponent = formatTooltipText(processedTitle);
-        
-        // Get lore with proper formatting
-        List<String> loreStrings = plugin.getInternalConfig().getStringList("settings.system.gui.lore." + sortType + "-sort-button");
-        List<Component> loreComponents = new ArrayList<>();
-        for (String loreString : loreStrings) {
-            String processedLore = plugin.replaceVariables(loreString);
-            processedLore = replaceLabelPlaceholders(processedLore);
-            loreComponents.add(formatTooltipText(processedLore));
-        }
-        
-        ItemBuilder itemBuilder = ItemBuilder.from(material)
-            .amount(1)
-            .name(titleComponent)
-            .lore(loreComponents);
-        
-        ModalItem sortItem = itemBuilder.asModalItem(event -> {
-            handleSortButtonClick(player, sortType, categoryId, event.getClick());
-        });
-        
-        if (slot >= 0 && slot < modal.getRows() * 9) {
-            modal.setItem(slot, sortItem);
-        }
-    }
-    
-    /**
-     * Gets the material for a sort button based on type and theme
-     * 
-     * @param sortType The sort type
-     * @param categoryId The current category (for category button theming)
-     * @return Material name
-     */
-    private String getSortButtonMaterial(String sortType, String categoryId) {
-        String buttonType = plugin.getInternalConfig().getString("settings.system.modal.tags." + sortType + "-sort-button", "BASIC");
-        
-        if ("THEME".equalsIgnoreCase(buttonType)) {
-            // Use themed materials
-            String themePath = "gui.layout.items." + sortType + "-sort-button-themed.material.";
-            
-            if ("category".equals(sortType)) {
-                themePath += categoryId.toLowerCase();
-            } else {
-                themePath += "all"; // Default theme
-            }
-            
-            return plugin.getInternalConfig().getString(themePath + ".material", "BOOKSHELF");
-        } else {
-            // Use basic material
-            return plugin.getInternalConfig().getString("gui.layout.items." + sortType + "-sort-button.material", "GOLD_BLOCK");
-        }
-    }
-    
-    /**
-     * Handles sort button clicks
-     * 
-     * @param player The player who clicked
-     * @param sortType The sort type
-     * @param categoryId The current category
-     * @param clickType The click type
-     */
-    private void handleSortButtonClick(Player player, String sortType, String categoryId, ClickType clickType) {
-        // TODO: Implement sorting logic
-        String message = plugin.getInternalConfig().getString("messages.modal.sort-changed",
-            "<yellow>Changed {sorttype} sorting.</yellow>");
-        message = message.replace("{sorttype}", sortType);
-        TextUtility.sendPlayerMessage(player, plugin.replaceVariables(message));
-    }
-    
-    /**
-     * Adds utility buttons (reset tag, active tag display)
-     * 
-     * @param modal The modal to add buttons to
-     * @param player The player the modal is for
-     * @param categoryId The current category
-     */
-    private void addUtilityButtons(PaginatedModal modal, Player player, String categoryId) {
-        // Reset tag button
-        boolean resetEnabled = plugin.getInternalConfig().getBoolean("gui.layout.items.reset-tag-button.enabled", true);
-        if (resetEnabled) {
-            int slot = plugin.getInternalConfig().getInt("gui.layout.items.reset-tag-button.slot.tags-menu", 49);
-            addUtilityButton(modal, player, slot, "reset");
-        }
-        
-        // Active tag display
-        boolean activeEnabled = plugin.getInternalConfig().getBoolean("gui.layout.items.active-tag.enabled", true);
-        if (activeEnabled) {
-            int slot = plugin.getInternalConfig().getInt("gui.layout.items.active-tag.slot.tags-menu", 53);
-            addUtilityButton(modal, player, slot, "active");
-        }
-    }
-    
-    /**
-     * Adds a utility button
-     * Uses proper tooltip formatting
-     * 
-     * @param modal The modal to add the button to
-     * @param player The player the modal is for
-     * @param slot The slot to place the button in
-     * @param buttonType The button type (reset/active)
-     */
-    private void addUtilityButton(PaginatedModal modal, Player player, int slot, String buttonType) {
-        String materialName = plugin.getInternalConfig().getString("gui.layout.items." + buttonType + "-tag-button.material", 
-            buttonType.equals("reset") ? "RED_DYE" : "NAME_TAG");
-        Material material = Material.valueOf(materialName.toUpperCase());
-        
-        String titleKey = "settings.system.gui.titles." + buttonType + "-tag";
-        String title = plugin.getInternalConfig().getString(titleKey, 
-            buttonType.equals("reset") ? "<red>Reset Tag</red>" : "<gold>Active Tag</gold>");
-        String processedTitle = plugin.replaceVariables(title);
-        processedTitle = replaceLabelPlaceholders(processedTitle);
-        Component titleComponent = formatTooltipText(processedTitle);
-        
-        ItemBuilder itemBuilder = ItemBuilder.from
+}

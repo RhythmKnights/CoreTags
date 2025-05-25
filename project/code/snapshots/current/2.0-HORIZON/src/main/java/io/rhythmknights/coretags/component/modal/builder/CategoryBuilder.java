@@ -259,9 +259,10 @@ public class CategoryBuilder {
     private Component formatTooltipText(String text) {
         // Parse the text with TextUtility first to get all the formatting
         Component component = TextUtility.parse(text);
-        
-        // Override italic to false (remove default italic) and ensure proper formatting
-        return component.decoration(TextDecoration.ITALIC, false);
+
+        // Override italic to false and set default color to white
+        return component.decoration(TextDecoration.ITALIC, false)
+                       .colorIfAbsent(net.kyori.adventure.text.format.NamedTextColor.WHITE);
     }
     
     /**
