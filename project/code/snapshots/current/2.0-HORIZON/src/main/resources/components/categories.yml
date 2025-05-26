@@ -1,0 +1,170 @@
+settings:
+  system:
+    category-sort:
+      filters:
+        all:
+          id: ALL # internal name for filter view, must be all caps, no spaces, only letters, numbers, and underscores
+          name: '&6ALL' # name that appears on the tooltip of the category sort button for this category
+          sort-lore:
+            enabled: true
+            lore:
+              - '&7Display tags in &6all &7categories,'
+              - '&7including &bfavorites&7, &2unlocked&7,'
+              - '&clocked&7, and &5protected&7.'
+              - ''
+        favorites:
+          id: FAVORITES
+          name: '&bFAVORITES'
+          sort-lore:
+            enabled: true
+            lore:
+             - '&7Display only tags marked as &bfavorite&7.'
+             - ''
+        unlocked:
+          id: UNLOCKED
+          name: '&2UNLOCKED'
+          sort-lore:
+            enabled: true
+            lore:
+             - '&7Display only &2unlocked &7tags.'
+             - ''
+        locked:
+          id: LOCKED
+          name: '&cLOCKED'
+          sort-lore:
+            enabled: true
+            lore:
+             - '&7Display only &clocked &7tags.'
+             - ''
+        protected:
+          id: PROTECTED
+          name: '&5PROTECTED'
+          sort-lore:
+            enabled: true
+            lore:
+             - '&7Display only &5protected &7tags.'
+             - '&c(ᴘʀᴏᴛᴇᴄᴛᴇᴅ ᴛᴀɢꜱ ᴄᴀɴɴᴏᴛ ʙᴇ ᴘᴜʀᴄʜᴀꜱᴇᴅ)'
+             - ''
+        default:
+          id: DEFAULT
+          name: '&7DEFAULT'
+          sort-lore:
+            enabled: true
+            lore:
+             - '&7Display only default tags.'
+             - ''
+        premium:
+          id: PREMIUM
+          name: '&ePREMIUM'
+          sort-lore:
+            enabled: true
+            lore:
+             - '&7Display only &epremium &7tags.'
+             - '&c(ᴘʀᴇᴍɪᴜᴍ ᴛᴀɢꜱ ʀᴇꞯᴜɪʀᴇ ᴀ ᴘʀᴇᴍɪᴜᴍ ʀᴀɴᴋ)'
+             - ''
+        special:
+          id: SPECIAL
+          name: '&9SPECIAL'
+          sort-lore:
+            enabled: true
+            lore:
+             - '&7Display only &9special &7tags.'
+             - '&c(ꜱᴘᴇᴄɪᴀʟ ᴛᴀɢꜱ ᴄᴀɴɴᴏᴛ ʙᴇ ᴘᴜʀᴄʜᴀꜱᴇᴅ)'
+             - ''
+        
+      sort-button:
+        name: '&7CATEGORY &8• {filter}' # title displayed on the category sort button
+      
+    favorites-sort:
+      sort-button:
+        name: '&7FAVORITES &8• {sort-type}' # title displayed on the favorites sort button
+      
+      sort-type:
+        sorted:
+          id: SORTED
+          name: '&6SORTED'
+        unsorted:
+          id: UNSORTED
+          name: '&6UNSORTED'
+        
+  categories:
+    all:
+      name: '&6All' # the name that appears for the item in the tooltip when hovered oin the category gui
+      lore: '' # if left blank, the line is omitted entirely. if text is found here, it is added to the tooltip lore section of the item when hovered
+      slot: 10 # the slot this category appears on in the category gui, if -1 it is not placed on the category gui but will still appear in category filters
+      material: BOOKSHELF # the item texture to be displayed in the slot
+      material-modifier: -1 # if the value here is -1 then this is ignored, otherwise, this is the modifier used for material options, such as a potion or tipped arrow
+      custom-model-data: -1 # custom model data used to apply a different texture for the item, if -1 then the default model data is to be used
+      enchantment-glint: false # if true, add an enchantement glint to the item in the slot on category gui
+      perms: coretags.gui # permission node needed to see this category, if perms are not found, the player will not see it in categories gui or filter view
+      protected: false
+    default:
+      name: '&7Default'
+      lore: ''
+      slot: 12
+      material: LIGHT_GRAY_SHULKER_BOX
+      material-modifier: -1
+      custom-model-data: -1
+      enchantment-glint: false
+      perms: coretags.category.default
+      protected: false
+    unlocked:
+      name: '&2Unlocked'
+      lore: ''
+      slot: -1
+      material: LIME_SHULKER_BOX
+      material-modifier: -1
+      custom-model-data: -1
+      enchantment-glint: false
+      perms: coretags.gui
+      protected: false
+    locked:
+      name: '&cLocked' 
+      lore: '' 
+      slot: -1 
+      material: RED_SHULKER_BOX
+      material-modifier: -1 
+      custom-model-data: -1
+      enchantment-glint: false
+      perms: coretags.gui
+      protected: false
+    favorites:
+      name: '&bFavorites'
+      lore: ''
+      slot: -1
+      material: LIGHT_BLUE_SHULKER_BOX
+      material-modifier: -1
+      custom-model-data: -1
+      enchantment-glint: false
+      perms: coretags.gui
+      protected: false
+    protected:
+      name: '&5Protected'
+      slot: 8
+      material: PURPLE_SHULKER_BOX
+      material-modifier: -1
+      custom-model-data: -1
+      enchantment-glint: true
+      perms: coretags.category.protected
+      protected: true
+    # CUSTOM CATEGORIES
+    premium:
+      name: '&ePremium'
+      slot: 14
+      material: YELLOW_SHULKER_BOX
+      material-modifier: -1
+      custom-model-data: -1
+      enchantment-glint: true
+      perms: coretags.category.premium
+      protected: false
+    special:
+      name: '&9Special'
+      filter: SPECIAL
+      filter-name: '&9SPECIAL'
+      slot: 16
+      material: BLUE_SHULKER_BOX
+      material-modifier: -1
+      custom-model-data: -1
+      enchantment-glint: true
+      perms: coretags.category.special
+      protected: false

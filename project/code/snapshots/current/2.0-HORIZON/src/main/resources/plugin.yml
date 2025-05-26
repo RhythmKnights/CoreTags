@@ -1,0 +1,37 @@
+name: CoreTags
+version: 2.0-HORIZON
+main: io.rhythmknights.coretags.CoreTags
+api-version: "1.21"
+author: RhythmKnights♪
+description: A powerful tag/prefix management plugin with LuckPerms, PlaceholderAPI, Vault & Adventure support.
+
+softdepend:
+  - LuckPerms
+  - PlaceholderAPI
+  - Vault
+
+commands:
+  coretags:
+    description: Opens the CoreTags GUI or runs admin sub-commands.
+    aliases: [ctags, ct]
+    permission: coretags.gui
+
+permissions:
+  coretags.*:
+    description: Parent node for all CoreTags permissions.
+    children:
+      coretags.gui: true
+      coretags.reload: true
+      coretags.admin.*: true
+
+  coretags.gui:
+    description: Allows players to open the CoreTags GUI.
+    default: true
+
+  coretags.reload:
+    description: Allows use of /coretags reload.
+    default: op
+
+  coretags.admin.*:
+    description: Grants every admin-level CoreTags command (unlock/lock etc.).
+    default: op

@@ -1,158 +1,183 @@
 package io.rhythmknights.coretags.component.modal;
 
-import io.rhythmknights.coreframework.util.TextUtility;
 import io.rhythmknights.coretags.CoreTags;
 import io.rhythmknights.coretags.component.data.ConfigModule;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
 public final class TagModal {
-    private final CoreTags plugin;
-    private final TextUtility textUtility;
-    private final File file;
-    private YamlConfiguration tagCfg;
-    private final Map<String, Tag> tagsByKey = new HashMap<>();
-    private final Map<String, List<Tag>> tagsByCategory = new HashMap<>();
-    private final EnumMap<ConfigModule.GameState, String> statusMap = new EnumMap<>(ConfigModule.GameState.class);
+   private final CoreTags plugin;
+   private final File file;
+   private YamlConfiguration tagCfg;
+   private final Map<String, TagModal.Tag> tagsByKey = new HashMap();
+   private final Map<String, List<TagModal.Tag>> tagsByCategory = new HashMap();
+   private final EnumMap<ConfigModule.GameState, String> statusMap = new EnumMap(ConfigModule.GameState.class);
+   private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
 
-    public TagModal(CoreTags plugin) {
-        this.plugin = plugin;
-        this.textUtility = plugin.textUtility();
-        this.file = new File(plugin.getDataFolder(), "components/tags.yml");
-        if (!this.file.exists()) {
-            plugin.saveResource("components/tags.yml", false);
-        }
-        this.reload();
-    }
+   public TagModal(CoreTags plugin) {
+      this.plugin = plugin;
+      this.file = new File(plugin.getDataFolder(), "components/tags.yml");
+      if (!this.file.exists()) {
+         plugin.saveResource("components/tags.yml", false);
+      }
 
-    public void reload() {
-        this.tagsByKey.clear();
-        this.tagsByCategory.clear();
-        this.statusMap.clear();
-        this.tagCfg = new YamlConfiguration();
+      this.reload();
+   }
 
-        try {
-            this.tagCfg.load(this.file);
-        } catch (IOException | InvalidConfigurationException e) {
-            this.plugin.getLogger().severe("Failed to load components/tags.yml: " + e.getMessage());
-            return;
-        }
+   public void reload() {
+      this.tagsByKey.clear();
+      this.tagsByCategory.clear();
+      this.statusMap.clear();
+      this.tagCfg = new YamlConfiguration();
 
-        this.loadStatusMap();
-        this.loadTags();
-        
-        // Sort tags within each category
-        this.tagsByCategory.values().forEach(list -> 
-            list.sort(Comparator.comparing(Tag::id)));
-        
-        this.plugin.getLogger().info("Loaded " + this.tagsByKey.size() + " tags.");
-    }
+      try {
+         this.tagCfg.load(this.file);
+      } catch (IOException | InvalidConfigurationException var11) {
+         this.plugin.getLogger().severe("Failed to load components/tags.yml: " + var11.getMessage());
+         return;
+      }
 
-    private void loadStatusMap() {
-        ConfigurationSection statusRoot = this.tagCfg.getConfigurationSection("settings.system.status");
-        if (statusRoot != null) {
-            for (ConfigModule.GameState gameState : ConfigModule.GameState.values()) {
-                String statusText = statusRoot.getString(gameState.name().toLowerCase(Locale.ROOT), "&f" + gameState.name());
-                // Parse the status text through TextUtility and then convert back to plain text for storage
-                Component parsedComponent = this.textUtility.parseText(statusText);
-                this.statusMap.put(gameState, this.textUtility.componentToPlainText(parsedComponent));
+      ConfigurationSection statRoot = this.tagCfg.getConfigurationSection("settings.system.status");
+      String id;
+      if (statRoot != null) {
+         ConfigModule.GameState[] var2 = ConfigModule.GameState.values();
+         int var3 = var2.length;
+
+         for(int var4 = 0; var4 < var3; ++var4) {
+            ConfigModule.GameState gs = var2[var4];
+            id = statRoot.getString(gs.name().toLowerCase(Locale.ROOT), "&f" + gs.name());
+            this.statusMap.put(gs, LEGACY.serialize(LEGACY.deserialize(id)));
+         }
+      }
+
+      ConfigurationSection root = this.tagCfg.getConfigurationSection("settings.tags");
+      if (root == null) {
+         this.plugin.getLogger().warning("No 'settings.tags' section in tags.yml!");
+      } else {
+         Iterator it = root.getKeys(false).iterator();
+
+         while(it.hasNext()) {
+            String key = (String)it.next();
+            ConfigurationSection cs = root.getConfigurationSection(key);
+            if (cs != null) {
+               id = key.toLowerCase(Locale.ROOT);
+               String cat = cs.getString("category", "default").replace("coretags.category.", "").toLowerCase(Locale.ROOT);
+               String rawColor = cs.getString("color", "ALL").toUpperCase(Locale.ROOT);
+               if (rawColor.equals("GREY")) {
+                  rawColor = "GRAY";
+               }
+
+               List<Component> description = cs.getStringList("description").stream().map((s) -> {
+                  return (Component) LEGACY.deserialize(s);
+               }).toList();
+               TagModal.Tag tag = new TagModal.Tag(id, cat, this.parseMat(cs.getString("material", "PAPER")), LEGACY.deserialize(cs.getString("name", key)), LEGACY.deserialize(cs.getString("display", "[" + key + "]")), description, Math.max(0, cs.getInt("cost", 0)), cs.getString("permission", "coretags.tag." + id), rawColor);
+               this.tagsByKey.put(id, tag);
+               ((List)this.tagsByCategory.computeIfAbsent(cat, (k) -> {
+                  return new ArrayList();
+               })).add(tag);
             }
-        }
-    }
+         }
 
-    private void loadTags() {
-        ConfigurationSection root = this.tagCfg.getConfigurationSection("settings.tags");
-        if (root == null) {
-            this.plugin.getLogger().warning("No 'settings.tags' section in tags.yml!");
-            return;
-        }
+         this.tagsByCategory.values().forEach((list) -> {
+            list.sort(Comparator.comparing(TagModal.Tag::id));
+         });
+         this.plugin.getLogger().info("Loaded " + this.tagsByKey.size() + " tags.");
+      }
 
-        for (String key : root.getKeys(false)) {
-            ConfigurationSection tagSection = root.getConfigurationSection(key);
-            if (tagSection != null) {
-                this.loadTag(key, tagSection);
-            }
-        }
-    }
+   }
 
-    private void loadTag(String key, ConfigurationSection section) {
-        String id = key.toLowerCase(Locale.ROOT);
-        String category = section.getString("category", "default")
-                .replace("coretags.category.", "")
-                .toLowerCase(Locale.ROOT);
-        
-        String rawColor = section.getString("color", "ALL").toUpperCase(Locale.ROOT);
-        if (rawColor.equals("GREY")) {
-            rawColor = "GRAY";
-        }
+   public YamlConfiguration rawConfig() {
+      return this.tagCfg;
+   }
 
-        // Parse components using TextUtility
-        Component name = this.textUtility.parseText(section.getString("name", key));
-        Component display = this.textUtility.parseText(section.getString("display", "[" + key + "]"));
-        
-        List<Component> description = section.getStringList("description").stream()
-                .map(this.textUtility::parseText)
-                .toList();
+   public String statusText(ConfigModule.GameState state) {
+      return (String)this.statusMap.getOrDefault(state, state.name());
+   }
 
-        Material icon = this.parseMaterial(section.getString("material", "PAPER"));
-        int cost = Math.max(0, section.getInt("cost", 0));
-        String permission = section.getString("permission", "coretags.tag." + id);
+   public Optional<TagModal.Tag> byId(String id) {
+      return Optional.ofNullable((TagModal.Tag)this.tagsByKey.get(id.toLowerCase(Locale.ROOT)));
+   }
 
-        Tag tag = new Tag(id, category, icon, name, display, description, cost, permission, rawColor);
-        this.tagsByKey.put(id, tag);
-        this.tagsByCategory.computeIfAbsent(category, k -> new ArrayList<>()).add(tag);
-    }
+   public List<TagModal.Tag> byCategory(String cat) {
+      return (List)this.tagsByCategory.getOrDefault(cat.toLowerCase(Locale.ROOT), List.of());
+   }
 
-    private Material parseMaterial(String rawMaterial) {
-        try {
-            return Material.valueOf(rawMaterial.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
-            this.plugin.getLogger().warning("Invalid material '" + rawMaterial + "', using PAPER as fallback");
-            return Material.PAPER;
-        }
-    }
+   public Collection<TagModal.Tag> all() {
+      return this.tagsByKey.values();
+   }
 
-    public YamlConfiguration rawConfig() {
-        return this.tagCfg;
-    }
+   private Material parseMat(String raw) {
+      try {
+         return Material.valueOf(raw.trim().toUpperCase(Locale.ROOT));
+      } catch (IllegalArgumentException var3) {
+         return Material.PAPER;
+      }
+   }
 
-    public String statusText(ConfigModule.GameState state) {
-        return this.statusMap.getOrDefault(state, state.name());
-    }
+   public static record Tag(String id, String category, Material icon, Component name, Component display, List<Component> description, int cost, String permission, String color) {
+      public Tag(String id, String category, Material icon, Component name, Component display, List<Component> description, int cost, String permission, String color) {
+         color = color.toUpperCase(Locale.ROOT).replace("GREY", "GRAY");
+         this.id = id;
+         this.category = category;
+         this.icon = icon;
+         this.name = name;
+         this.display = display;
+         this.description = description;
+         this.cost = cost;
+         this.permission = permission;
+         this.color = color;
+      }
 
-    public Optional<Tag> byId(String id) {
-        return Optional.ofNullable(this.tagsByKey.get(id.toLowerCase(Locale.ROOT)));
-    }
+      public String id() {
+         return this.id;
+      }
 
-    public List<Tag> byCategory(String category) {
-        return this.tagsByCategory.getOrDefault(category.toLowerCase(Locale.ROOT), List.of());
-    }
+      public String category() {
+         return this.category;
+      }
 
-    public Collection<Tag> all() {
-        return this.tagsByKey.values();
-    }
+      public Material icon() {
+         return this.icon;
+      }
 
-    public record Tag(
-            String id,
-            String category,
-            Material icon,
-            Component name,
-            Component display,
-            List<Component> description,
-            int cost,
-            String permission,
-            String color
-    ) {
-        public Tag {
-            // Normalize color
-            color = color.toUpperCase(Locale.ROOT).replace("GREY", "GRAY");
-        }
-    }
+      public Component name() {
+         return this.name;
+      }
+
+      public Component display() {
+         return this.display;
+      }
+
+      public List<Component> description() {
+         return this.description;
+      }
+
+      public int cost() {
+         return this.cost;
+      }
+
+      public String permission() {
+         return this.permission;
+      }
+
+      public String color() {
+         return this.color;
+      }
+   }
 }

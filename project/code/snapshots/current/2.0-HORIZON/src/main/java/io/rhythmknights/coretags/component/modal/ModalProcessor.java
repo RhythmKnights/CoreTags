@@ -1,567 +1,425 @@
 package io.rhythmknights.coretags.component.modal;
 
-import io.rhythmknights.coreapi.CoreAPI;
-import io.rhythmknights.coreapi.modal.Modal;
-import io.rhythmknights.coreapi.modal.PaginatedModal;
-import io.rhythmknights.coreapi.modal.item.ItemBuilder;
-import io.rhythmknights.coreapi.modal.item.ModalItem;
-import io.rhythmknights.coreapi.modal.navigation.NavBuilder;
-import io.rhythmknights.coreapi.modal.pagination.PaginationRegion;
-import io.rhythmknights.coreframework.util.TextUtility;
+import io.rhythmknights.coreapi.component.modal.BaseModal;
+import io.rhythmknights.coreapi.component.modal.ModalItem;
+import io.rhythmknights.coreapi.modal.builder.item.ItemBuilder;
 import io.rhythmknights.coretags.CoreTags;
 import io.rhythmknights.coretags.component.data.ConfigModule;
 import io.rhythmknights.coretags.component.data.PlayerDataModule;
 import io.rhythmknights.coretags.component.hook.VaultHook;
+
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Central processor for handling all modal-based GUI interactions in CoreTags.
- * 
- * <p>This class serves as the primary interface between the plugin's data models
- * and the CoreAPI modal system. It handles:</p>
- * <ul>
- *   <li>Creating and managing category selection modals</li>
- *   <li>Creating and managing tag selection modals with pagination</li>
- *   <li>Processing player interactions with modal elements</li>
- *   <li>Managing GUI session state and navigation</li>
- *   <li>Handling tag purchases and unlocking</li>
- *   <li>Managing filter and sort operations</li>
- * </ul>
- * 
- * <p>The processor maintains session state for each player, allowing for
- * complex navigation patterns and stateful GUI interactions.</p>
- * 
- * @author RhythmKnights
- * @version 2.1-HORIZON
- * @since 2.0.0
- * 
- * @apiNote This class integrates tightly with CoreAPI's modal system and
- *          should be the primary way to open GUIs for players.
- * @implNote All modal operations are asynchronous and thread-safe.
- */
-public final class ModalProcessor {
-    /** The main plugin instance for accessing other components. */
-    private final CoreTags plugin;
-    
-    /** CoreAPI instance for creating and managing modals. */
-    private final CoreAPI coreAPI;
-    
-    /** TextUtility for consistent text processing across the plugin. */
-    private final TextUtility textUtility;
-    
-    /** Configuration module for accessing plugin settings. */
-    private final ConfigModule cfg;
-    
-    /** Category modal for accessing category definitions. */
-    private final CategoryModal cats;
-    
-    /** Tag modal for accessing tag definitions. */
-    private final TagModal tags;
-    
-    /** Player data module for accessing player-specific information. */
-    private final PlayerDataModule data;
-    
-    /** Economy hook for handling tag purchases. */
-    private final VaultHook eco;
-    
-    /** Configuration file for categories. */
-    private final FileConfiguration catCfg;
-    
-    /** Configuration file for tags. */
-    private final FileConfiguration tagCfg;
-    
-    /** Default view mode (category or tags). */
-    private final String defaultView;
-    
-    /** Whether to swap back buttons with close buttons on top-level modals. */
-    private final boolean swapGlobal;
-    
-    /** Configuration for close button command execution. */
-    private final ConfigModule.CloseCmd closeCfg;
-    
-    /** Map of player UUIDs to their current GUI sessions. */
-    private final Map<UUID, GuiSession> openSessions = new HashMap<>();
-    
-    /**
-     * List of available color filters for tag filtering.
-     * These correspond to the color values that can be assigned to tags.
-     */
-    private static final List<String> COLORS = List.of(
-        "ALL", "MULTI", "RED", "ORANGE", "YELLOW", "GREEN", 
-        "BLUE", "PURPLE", "PINK", "BROWN", "GRAY", "BLACK", "WHITE"
-    );
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
-    /**
-     * Constructs a new ModalProcessor with the specified plugin instance.
-     * 
-     * <p>This constructor initializes all dependencies and loads configuration
-     * files for categories and tags. It does not register any event listeners
-     * or create any modals - those operations are handled by the individual
-     * modal opening methods.</p>
-     * 
-     * @param plugin the CoreTags plugin instance
-     * 
-     * @throws IllegalStateException if required dependencies are not available
-     * @implNote This constructor should only be called during plugin initialization.
-     */
-    public ModalProcessor(@NotNull CoreTags plugin) {
-        this.plugin = plugin;
-        this.coreAPI = plugin.coreAPI();
-        this.textUtility = plugin.textUtility();
-        this.cfg = plugin.configs();
-        this.cats = plugin.categories();
-        this.tags = plugin.tags();
-        this.data = plugin.playerData();
-        this.eco = plugin.economy();
+public final class ModalProcessor implements Listener {
+    private final CoreTags plugin;
+    private final ConfigModule cfg;
+    private final CategoryModal cats;
+    private final TagModal tags;
+    private final PlayerDataModule data;
+    private final VaultHook eco;
+    private final FileConfiguration catCfg;
+    private final FileConfiguration tagCfg;
+    private final String defaultView;
+    private final boolean swapGlobal;
+    private final ConfigModule.CloseCmd closeCfg;
+    private final Map<UUID, GuiSession> open = new HashMap<>();
+
+    // Button configurations
+    private Btn catBtn;
+    private Btn favBtn;
+    private Btn prevBtn;
+    private Btn nextBtn;
+    private Btn resetBtn;
+    private Btn backBtn;
+    private Btn closeBtn;
+    private Btn activeBtn;
+    private Btn colorSortBtn;
+    private boolean colorSwitchMaterial;
+    private boolean categorySwitchMaterial;
+
+    private static final List<String> COLORS = List.of("ALL", "MULTI", "RED", "ORANGE", "YELLOW", 
+        "GREEN", "BLUE", "PURPLE", "PINK", "BROWN", "GRAY", "BLACK", "WHITE");
+
+    public ModalProcessor(CoreTags pl) {
+        this.plugin = pl;
+        this.cfg = pl.configs();
+        this.cats = pl.categories();
+        this.tags = pl.tags();
+        this.data = pl.playerData();
+        this.eco = pl.economy();
         this.defaultView = plugin.getConfig().getString("settings.system.default-view", "category").toLowerCase(Locale.ROOT);
         this.swapGlobal = plugin.getConfig().getBoolean("settings.system.close-button-swap", true);
-        this.closeCfg = this.cfg.closeCmd();
-        
+        this.closeCfg = cfg.closeCmd();
+
         File catFile = new File(plugin.getDataFolder(), "components/categories.yml");
         this.catCfg = YamlConfiguration.loadConfiguration(catFile);
         File tagFile = new File(plugin.getDataFolder(), "components/tags.yml");
         this.tagCfg = YamlConfiguration.loadConfiguration(tagFile);
+
+        loadButtonMeta();
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
-    /**
-     * Reloads configuration files from disk.
-     * 
-     * <p>This method reloads both the main plugin configuration and the
-     * component-specific configuration files (categories.yml and tags.yml).
-     * It's called during plugin reload operations to ensure all settings
-     * are up to date.</p>
-     * 
-     * @apiNote This method is safe to call while players have modals open,
-     *          but they may need to reopen them to see changes.
-     * @implNote Configuration parsing errors are logged but do not prevent
-     *           the reload operation from completing.
-     */
-    public void reloadFileConfigs() {
-        this.plugin.reloadConfig();
-        File catFile = new File(this.plugin.getDataFolder(), "components/categories.yml");
-        try {
-            ((YamlConfiguration) this.catCfg).load(catFile);
-        } catch (IOException e) {
-            this.plugin.getLogger().severe("Could not reload components/categories.yml: " + e.getMessage());
-        }
+    private void loadButtonMeta() {
+        String base = "settings.gui.layout.items.";
+        this.catBtn = new Btn(mat("category-sort-button-material"), slot(base + "category-sort-button-slot"));
+        this.favBtn = new Btn(mat("favorite-sort-button-material"), slot(base + "favorite-sort-button-slot"));
+        this.prevBtn = new Btn(mat("last-page-button-material"), slot(base + "last-page-button-slot"));
+        this.nextBtn = new Btn(mat("next-page-button-material"), slot(base + "next-page-button-slot"));
+        this.resetBtn = new Btn(mat("reset-button-material"), slot(base + "reset-button-slot-tags"));
+        this.backBtn = new Btn(mat("back-button-material"), slot(base + "back-button-slot-tags"));
+        this.closeBtn = new Btn(mat("close-button-material"), slot(base + "close-button-slot-tags"));
+        this.activeBtn = new Btn(mat("active-tag-material"), slot(base + "active-tag-item-slot-tags"));
+        this.colorSortBtn = new Btn(mat("color-sort-button-material"), slot(base + "color-sort-button-slot"));
         
-        File tagFile = new File(this.plugin.getDataFolder(), "components/tags.yml");
-        try {
-            ((YamlConfiguration) this.tagCfg).load(tagFile);
-        } catch (IOException e) {
-            this.plugin.getLogger().severe("Could not reload components/tags.yml: " + e.getMessage());
-        }
+        this.colorSwitchMaterial = plugin.getConfig().getBoolean("settings.gui.layout.materials.color-sort-button-material.material-switch", false);
+        this.categorySwitchMaterial = plugin.getConfig().getBoolean("settings.gui.layout.materials.category-sort-button-material.material-switch", false);
     }
 
-    /**
-     * Closes all open modals and clears session data.
-     * 
-     * <p>This method is typically called during plugin shutdown or reload
-     * operations to ensure all players have their inventories properly
-     * closed and no session data is left in memory.</p>
-     * 
-     * @apiNote This method is safe to call multiple times and will not
-     *          cause errors if no modals are currently open.
-     * @implNote This operation is synchronous and will complete before returning.
-     */
+    public void reloadFileConfigs() {
+        plugin.reloadConfig();
+        File catFile = new File(plugin.getDataFolder(), "components/categories.yml");
+        try {
+            ((YamlConfiguration) catCfg).load(catFile);
+        } catch (InvalidConfigurationException | IOException e) {
+            plugin.getLogger().severe("Could not reload components/categories.yml: " + e.getMessage());
+        }
+
+        File tagFile = new File(plugin.getDataFolder(), "components/tags.yml");
+        try {
+            ((YamlConfiguration) tagCfg).load(tagFile);
+        } catch (InvalidConfigurationException | IOException e) {
+            plugin.getLogger().severe("Could not reload components/tags.yml: " + e.getMessage());
+        }
+
+        loadButtonMeta();
+    }
+
     public void refreshAll() {
-        this.openSessions.keySet().forEach(uuid -> {
-            Player p = Bukkit.getPlayer(uuid);
+        for (UUID id : open.keySet()) {
+            Player p = Bukkit.getPlayer(id);
             if (p != null) {
                 p.closeInventory();
             }
-        });
-        this.openSessions.clear();
+        }
+        open.clear();
     }
 
-    /**
-     * Closes all currently open modals for all players.
-     * 
-     * <p>This is an alias for {@link #refreshAll()} provided for semantic clarity
-     * when the intent is specifically to close modals rather than refresh state.</p>
-     * 
-     * @see #refreshAll()
-     */
-    public void closeAllModals() {
-        this.refreshAll();
-    }
-
-    /**
-     * Opens the category selection GUI for the specified player.
-     * 
-     * <p>This modal displays all available tag categories that the player has
-     * permission to access. Categories are displayed as clickable items that
-     * will open the tags GUI filtered to that specific category.</p>
-     * 
-     * <p>The modal includes navigation elements such as:</p>
-     * <ul>
-     *   <li>Reset button to clear the player's active tag</li>
-     *   <li>Active tag display showing the current selection</li>
-     *   <li>Close/back button depending on configuration</li>
-     * </ul>
-     * 
-     * @param player the player to open the modal for
-     * 
-     * @throws IllegalArgumentException if the player is null
-     * @apiNote This method will create a new GUI session for the player,
-     *          replacing any existing session.
-     * @implNote The modal layout is controlled by configuration settings
-     *           and will adapt to the configured number of rows.
-     */
-    public void openCategoryGui(@NotNull Player player) {
-        int rows = this.plugin.getConfig().getInt("settings.gui.category-menu.rows", 4);
-        String titlePattern = this.plugin.getConfig().getString("settings.gui.layout.titles.category-gui-name", "&8Tags | Categories");
-        Component title = this.textUtility.parseText(titlePattern);
-        
-        PaginatedModal modal = Modal.paginated()
-                .rows(rows)
+    public void openCategoryGui(Player player) {
+        try {
+            int rows = plugin.getConfig().getInt("settings.gui.category-menu.rows", 4);
+            String titlePattern = plugin.getConfig().getString("settings.gui.layout.titles.category-gui-name", "Tags | Categories");
+            
+            // Use CoreFramework TextUtility directly
+            Component title = parseText(titlePattern);
+            
+            // Use BaseModal instead of Modal
+            BaseModal modal = io.rhythmknights.coreapi.component.modal.Modal.modal()
                 .title(title)
+                .rows(rows)
+                .disableAllInteractions()
                 .create();
 
-        // Add category items
-        this.cats.all().stream()
+            // Add category items
+            cats.all().stream()
                 .filter(c -> player.hasPermission(c.permission()))
                 .sorted(Comparator.comparingInt(CategoryModal.TagCategory::slot))
-                .forEach(category -> {
-                    ItemBuilder itemBuilder = ItemBuilder.from(category.icon())
-                            .name(category.displayName())
-                            .lore(category.lore());
+                .forEach(c -> {
+                    // Use components directly - they're already parsed in CategoryModal
+                    Component name = c.displayName();
+                    List<Component> lore = c.lore();
                     
-                    ModalItem modalItem = itemBuilder.asModalItem(event -> {
-                        if (event.getWhoClicked() instanceof Player p) {
-                            Bukkit.getScheduler().runTask(this.plugin, () -> 
-                                this.openTagsGui(p, category.key(), 0));
-                        }
-                    });
+                    ModalItem item = ItemBuilder.from(c.icon())
+                        .name(name)
+                        .lore(lore)
+                        .asModalItem(event -> {
+                            Bukkit.getScheduler().runTask(plugin, () -> {
+                                openTagsGui(player, c.key(), 0);
+                            });
+                        });
                     
-                    modal.setItem(category.slot(), modalItem);
+                    modal.setItem(c.slot(), item);
                 });
 
-        // Add navigation buttons
-        this.addCategoryNavigationButtons(modal, player);
-        
-        modal.open(player);
-        
-        String cfgSort = this.plugin.getConfig().getString("settings.system.favorites-sort", "UNSORTED").toUpperCase(Locale.ROOT);
-        Sort defaultSort;
-        try {
-            defaultSort = Sort.valueOf(cfgSort);
-        } catch (IllegalArgumentException e) {
-            defaultSort = Sort.UNSORTED;
-        }
-        
-        this.openSessions.put(player.getUniqueId(), new GuiSession(GuiType.CATEGORY, 0, "ALL", defaultSort, "ALL"));
-    }
+            // Add reset button
+            int resetSlotCat = plugin.getConfig().getInt("settings.gui.layout.items.reset-button-slot-category", -1);
+            if (resetSlotCat >= 0) {
+                ModalItem resetItem = buildNavButton("reset-button", resetBtn.mat, Map.of());
+                resetItem.setAction(event -> {
+                    data.setActive(player.getUniqueId(), "none");
+                    sendMessage(player, plugin.getConfig().getString("settings.messages.tag-reset", ""));
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        openCategoryGui(player);
+                    });
+                });
+                modal.setItem(resetSlotCat, resetItem);
+            }
 
-    /**
-     * Opens the tags selection GUI for the specified player with filtering and pagination.
-     * 
-     * <p>This modal displays tags based on the specified filters and supports
-     * pagination for large numbers of tags. The modal includes various filtering
-     * and sorting options:</p>
-     * <ul>
-     *   <li>Category filtering (show only tags from specific categories)</li>
-     *   <li>Status filtering (all, favorites, unlocked, locked, protected)</li>
-     *   <li>Color filtering (filter by tag color)</li>
-     *   <li>Sorting options (alphabetical, favorites first)</li>
-     * </ul>
-     * 
-     * <p>Navigation controls include:</p>
-     * <ul>
-     *   <li>Previous/Next page buttons for pagination</li>
-     *   <li>Filter control buttons</li>
-     *   <li>Reset and active tag display</li>
-     *   <li>Back/close buttons</li>
-     * </ul>
-     * 
-     * @param player the player to open the modal for
-     * @param categoryFilter the category to filter by, or null to use current filter
-     * @param page the page number to display, or -999 to maintain current page
-     * 
-     * @throws IllegalArgumentException if the player is null
-     * @apiNote Page numbers are zero-based and will be automatically clamped
-     *          to valid ranges based on the filtered content.
-     * @implNote This method will update or create a GUI session for the player
-     *           with the specified parameters.
-     */
-    public void openTagsGui(@NotNull Player player, @Nullable String categoryFilter, int page) {
-        GuiSession session = this.openSessions.computeIfAbsent(player.getUniqueId(), uuid -> {
-            String cfgSort = this.plugin.getConfig().getString("settings.system.favorites-sort", "UNSORTED").toUpperCase(Locale.ROOT);
+            // Add active tag display
+            int activeSlotCat = plugin.getConfig().getInt("settings.gui.layout.items.active-tag-item-slot-category", -1);
+            if (activeSlotCat >= 0) {
+                String activeId = data.get(player.getUniqueId()).active;
+                String activeName = activeId != null && !activeId.equalsIgnoreCase("none") && !tags.byId(activeId).isEmpty() 
+                    ? componentToLegacyString(tags.byId(activeId).get().name())
+                    : tagCfg.getString("settings.system.empty-tag.name", "None");
+                
+                ModalItem activeItem = buildNavButton("active-tag", activeBtn.mat, Map.of("tag", activeName));
+                modal.setItem(activeSlotCat, activeItem);
+            }
+
+            // Add close/back button
+            boolean topCat = defaultView.equals("category");
+            int buttonSlot = swapGlobal && topCat 
+                ? plugin.getConfig().getInt("settings.gui.layout.items.close-button-slot-category", -1)
+                : plugin.getConfig().getInt("settings.gui.layout.items.back-button-slot-category", -1);
+                
+            if (buttonSlot >= 0) {
+                String buttonType = swapGlobal && topCat ? "close-button" : "back-button";
+                Material buttonMat = swapGlobal && topCat ? closeBtn.mat : backBtn.mat;
+                ModalItem buttonItem = buildNavButton(buttonType, buttonMat, Map.of());
+                
+                if (swapGlobal && topCat) {
+                    buttonItem.setAction(event -> handleTopClose(player));
+                }
+                modal.setItem(buttonSlot, buttonItem);
+            }
+
+            modal.open(player);
+
+            String cfgSort = plugin.getConfig().getString("settings.system.favorites-sort", "UNSORTED").toUpperCase(Locale.ROOT);
             Sort defaultSort;
             try {
                 defaultSort = Sort.valueOf(cfgSort);
             } catch (IllegalArgumentException e) {
                 defaultSort = Sort.UNSORTED;
             }
-            return new GuiSession(GuiType.TAGS, 0, "ALL", defaultSort, "ALL");
-        });
-        
-        session.type = GuiType.TAGS;
-        if (categoryFilter != null) {
-            session.filter = categoryFilter;
-        }
-        if (page != -999) {
-            session.page = page;
-        }
 
-        List<TagModal.Tag> filteredTags = this.applyFilterAndSort(player, session);
-        List<Integer> slots = this.cfg.guiSlots();
-        int perPage = slots.size();
-        int maxPage = Math.max(0, (filteredTags.size() - 1) / perPage);
-        session.page = Math.min(Math.max(0, session.page), maxPage);
+            open.put(player.getUniqueId(), new GuiSession(GuiType.CATEGORY, 0, "ALL", defaultSort, "ALL"));
+            
+        } catch (Exception e) {
+            plugin.getLogger().severe("Failed to open category GUI for " + player.getName() + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
-        int rows = this.plugin.getConfig().getInt("settings.gui.tags-menu.rows", 6);
-        String pattern = this.plugin.getConfig().getString("settings.gui.layout.titles.tags-gui-name", "&8Tags | {category} &7({currentpage}/{totalpages})");
-        String filterName = this.catCfg.getString("settings.system.category-sort.filters." + session.filter.toLowerCase(Locale.ROOT) + ".name", session.filter);
-        String titleRaw = pattern.replace("{category}", filterName)
+    public void openTagsGui(Player player, String categoryFilter, int page) {
+        try {
+            GuiSession session = open.computeIfAbsent(player.getUniqueId(), u -> {
+                String cfgSort = plugin.getConfig().getString("settings.system.favorites-sort", "UNSORTED").toUpperCase(Locale.ROOT);
+                Sort defaultSort;
+                try {
+                    defaultSort = Sort.valueOf(cfgSort);
+                } catch (IllegalArgumentException e) {
+                    defaultSort = Sort.UNSORTED;
+                }
+                return new GuiSession(GuiType.TAGS, 0, "ALL", defaultSort, "ALL");
+            });
+
+            session.type = GuiType.TAGS;
+            if (categoryFilter != null) {
+                session.filter = categoryFilter;
+            }
+            if (page != -999) {
+                session.page = page;
+            }
+
+            List<TagModal.Tag> src = applyFilterAndSort(player, session);
+            List<Integer> slots = cfg.guiSlots();
+            int perPage = slots.size();
+            int maxPage = Math.max(0, (src.size() - 1) / perPage);
+            session.page = Math.min(Math.max(0, session.page), maxPage);
+
+            int rows = plugin.getConfig().getInt("settings.gui.tags-menu.rows", 6);
+            String pattern = plugin.getConfig().getString("settings.gui.layout.titles.tags-gui-name", "Tags | {category} ({currentpage}/{totalpages})");
+            String filterName = catCfg.getString("settings.system.category-sort.filters." + session.filter.toLowerCase(Locale.ROOT) + ".name", session.filter);
+            String titleRaw = pattern.replace("{category}", filterName)
                 .replace("{currentpage}", String.valueOf(session.page + 1))
                 .replace("{totalpages}", String.valueOf(maxPage + 1));
-        Component title = this.textUtility.parseText(titleRaw);
-        
-        // Create pagination region
-        PaginationRegion region = PaginationRegion.fromSlots(slots);
-        
-        PaginatedModal modal = Modal.paginated()
-                .rows(rows)
+
+            Component title = parseText(titleRaw);
+
+            // Use BaseModal instead of Modal
+            BaseModal modal = io.rhythmknights.coreapi.component.modal.Modal.modal()
                 .title(title)
-                .paginationRegion(region)
+                .rows(rows)
+                .disableAllInteractions()
                 .create();
 
-        // Add paginated tag items
-        int base = session.page * perPage;
-        for (int i = 0; i < perPage && base + i < filteredTags.size(); i++) {
-            TagModal.Tag tag = filteredTags.get(base + i);
-            ModalItem tagItem = this.buildTagItem(player, tag);
-            modal.addItem(tagItem);
-        }
+            // Add tag items
+            int base = session.page * perPage;
+            for (int i = 0; i < perPage && base + i < src.size(); i++) {
+                TagModal.Tag tag = src.get(base + i);
+                ModalItem tagItem = buildTagItem(player, tag);
+                modal.setItem(slots.get(i), tagItem);
+            }
 
-        // Add navigation buttons
-        this.addTagsNavigationButtons(modal, player, session);
-        
-        modal.open(player);
-        this.openSessions.put(player.getUniqueId(), session);
+            // Add navigation buttons
+            addNavigationButtons(modal, session, player);
+
+            modal.open(player);
+            open.put(player.getUniqueId(), session);
+
+        } catch (Exception e) {
+            plugin.getLogger().severe("Failed to open tags GUI for " + player.getName() + ": " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
-    private void addCategoryNavigationButtons(PaginatedModal modal, Player player) {
-        // Reset button
-        int resetSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.reset-button-slot-category", -1);
-        if (resetSlot >= 0) {
-            ModalItem resetButton = ItemBuilder.from(Material.RED_DYE)
-                    .name(this.textUtility.parseText("&cReset Tag"))
-                    .asModalItem(event -> {
-                        if (event.getWhoClicked() instanceof Player p) {
-                            this.data.setActive(p.getUniqueId(), "none");
-                            Component message = this.textUtility.parseText(this.plugin.getConfig().getString("settings.messages.tag-reset", ""));
-                            p.sendMessage(message);
-                            Bukkit.getScheduler().runTask(this.plugin, () -> this.openCategoryGui(p));
-                        }
-                    });
-            modal.setItem(resetSlot, resetButton);
+    private void addNavigationButtons(BaseModal modal, GuiSession session, Player player) {
+        // Add previous page button
+        if (prevBtn.slot >= 0) {
+            ModalItem prevItem = buildNavButton("last-page-button", prevBtn.mat, Map.of());
+            prevItem.setAction(event -> {
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    openTagsGui(player, null, session.page - 1);
+                });
+            });
+            modal.setItem(prevBtn.slot, prevItem);
         }
 
-        // Active tag display
-        int activeSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.active-tag-item-slot-category", -1);
-        if (activeSlot >= 0) {
-            String activeId = this.data.get(player.getUniqueId()).active;
-            String activeName = activeId != null && !activeId.equalsIgnoreCase("none") && this.tags.byId(activeId).isPresent()
-                    ? PlainTextComponentSerializer.plainText().serialize(this.tags.byId(activeId).get().name())
-                    : this.tagCfg.getString("settings.system.empty-tag.name", "&7None");
+        // Add next page button  
+        if (nextBtn.slot >= 0) {
+            ModalItem nextItem = buildNavButton("next-page-button", nextBtn.mat, Map.of());
+            nextItem.setAction(event -> {
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    openTagsGui(player, null, session.page + 1);
+                });
+            });
+            modal.setItem(nextBtn.slot, nextItem);
+        }
+
+        // Add category sort button
+        if (catBtn.slot >= 0) {
+            String currentFilter = session.filter;
+            Material catMaterial = categorySwitchMaterial ? getMaterialForFilter(currentFilter) : catBtn.mat;
             
-            ModalItem activeButton = ItemBuilder.from(Material.NAME_TAG)
-                    .name(this.textUtility.parseText("&6Active Tag &8• &7" + activeName))
-                    .asModalItem(event -> {
-                        // Maybe open a submenu or do nothing
-                    });
-            modal.setItem(activeSlot, activeButton);
+            // Get filter display name from categories.yml
+            String filterDisplayName = getFilterDisplayName(currentFilter);
+            
+            ModalItem catItem = buildNavButton("category-sort-button", catMaterial, Map.of("filter", filterDisplayName, "category", filterDisplayName));
+            catItem.setAction(event -> {
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    String nextFilter = getNextCategoryFilter(currentFilter);
+                    session.filter = nextFilter;
+                    openTagsGui(player, null, 0); // Reset to page 0 when changing filter
+                });
+            });
+            modal.setItem(catBtn.slot, catItem);
         }
 
-        // Close/Back button
-        boolean topCategory = this.defaultView.equals("category");
-        if (this.swapGlobal && topCategory) {
-            int closeSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.close-button-slot-category", -1);
-            if (closeSlot >= 0) {
-                ModalItem closeButton = ItemBuilder.from(Material.BARRIER)
-                        .name(this.textUtility.parseText("&cExit"))
-                        .asModalItem(event -> {
-                            if (event.getWhoClicked() instanceof Player p) {
-                                this.handleTopClose(p);
-                            }
-                        });
-                modal.setItem(closeSlot, closeButton);
-            }
-        } else {
-            int backSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.back-button-slot-category", -1);
-            if (backSlot >= 0) {
-                ModalItem backButton = ItemBuilder.from(Material.SPECTRAL_ARROW)
-                        .name(this.textUtility.parseText("&cBack"))
-                        .asModalItem(event -> {
-                            if (event.getWhoClicked() instanceof Player p) {
-                                this.handleTopClose(p);
-                            }
-                        });
-                modal.setItem(backSlot, backButton);
-            }
-        }
-    }
-
-    private void addTagsNavigationButtons(PaginatedModal modal, Player player, GuiSession session) {
-        // Previous page button
-        int prevSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.last-page-button-slot", 48);
-        ModalItem prevButton = ItemBuilder.from(Material.ARROW)
-                .name(this.textUtility.parseText("&7Previous Page"))
-                .asModalItem(event -> {
-                    if (event.getWhoClicked() instanceof Player p) {
-                        Bukkit.getScheduler().runTask(this.plugin, () -> 
-                            this.openTagsGui(p, null, session.page - 1));
-                    }
+        // Add favorites sort button
+        if (favBtn.slot >= 0) {
+            String sortType = session.sort == Sort.SORTED ? "sorted" : "unsorted";
+            String sortDisplayName = getSortDisplayName(sortType);
+            ModalItem favItem = buildNavButton("favorite-sort-button", favBtn.mat, Map.of("sort", sortDisplayName, "sorting", sortDisplayName));
+            favItem.setAction(event -> {
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    session.sort = session.sort == Sort.SORTED ? Sort.UNSORTED : Sort.SORTED;
+                    openTagsGui(player, null, -999); // Keep current page
                 });
-        modal.setItem(prevSlot, prevButton);
-
-        // Next page button
-        int nextSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.next-page-button-slot", 50);
-        ModalItem nextButton = ItemBuilder.from(Material.ARROW)
-                .name(this.textUtility.parseText("&7Next Page"))
-                .asModalItem(event -> {
-                    if (event.getWhoClicked() instanceof Player p) {
-                        Bukkit.getScheduler().runTask(this.plugin, () -> 
-                            this.openTagsGui(p, null, session.page + 1));
-                    }
-                });
-        modal.setItem(nextSlot, nextButton);
-
-        // Category filter button
-        int catSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.category-sort-button-slot", 17);
-        ModalItem categoryButton = ItemBuilder.from(Material.GOLD_BLOCK)
-                .name(this.categoryButtonName(session.filter))
-                .asModalItem(event -> {
-                    if (event.getWhoClicked() instanceof Player p) {
-                        if (event.getClick() == ClickType.RIGHT) {
-                            session.filter = this.prevFilter(p, session.filter);
-                        } else {
-                            session.filter = this.nextFilter(p, session.filter);
-                        }
-                        Bukkit.getScheduler().runTask(this.plugin, () -> 
-                            this.openTagsGui(p, null, 0));
-                    }
-                });
-        modal.setItem(catSlot, categoryButton);
-
-        // Favorites sort button
-        int favSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.favorite-sort-button-slot", 26);
-        ModalItem favButton = ItemBuilder.from(Material.NETHER_STAR)
-                .name(this.favoriteButtonName(session.sort))
-                .asModalItem(event -> {
-                    if (event.getWhoClicked() instanceof Player p) {
-                        session.sort = session.sort == Sort.UNSORTED ? Sort.SORTED : Sort.UNSORTED;
-                        Bukkit.getScheduler().runTask(this.plugin, () -> 
-                            this.openTagsGui(p, null, -999));
-                    }
-                });
-        modal.setItem(favSlot, favButton);
-
-        // Color filter button
-        int colorSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.color-sort-button-slot", 35);
-        if (this.plugin.getConfig().getBoolean("settings.gui.layout.items.color-sort-button", false)) {
-            ModalItem colorButton = ItemBuilder.from(Material.BRUSH)
-                    .name(this.colorButtonTitle(session.colorFilter))
-                    .asModalItem(event -> {
-                        if (event.getWhoClicked() instanceof Player p) {
-                            if (event.getClick() == ClickType.RIGHT) {
-                                session.colorFilter = this.prevColor(session.colorFilter);
-                            } else {
-                                session.colorFilter = this.nextColor(session.colorFilter);
-                            }
-                            Bukkit.getScheduler().runTask(this.plugin, () -> 
-                                this.openTagsGui(p, null, session.page));
-                        }
-                    });
-            modal.setItem(colorSlot, colorButton);
+            });
+            modal.setItem(favBtn.slot, favItem);
         }
 
-        // Reset button
-        int resetSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.reset-button-slot-tags", 49);
-        ModalItem resetButton = ItemBuilder.from(Material.RED_DYE)
-                .name(this.textUtility.parseText("&cReset Tag"))
-                .asModalItem(event -> {
-                    if (event.getWhoClicked() instanceof Player p) {
-                        this.data.setActive(p.getUniqueId(), "none");
-                        Component message = this.textUtility.parseText(this.plugin.getConfig().getString("settings.messages.tag-reset", ""));
-                        p.sendMessage(message);
-                        Bukkit.getScheduler().runTask(this.plugin, () -> 
-                            this.openTagsGui(p, null, -999));
+        // Add color sort button
+        if (colorSortBtn.slot >= 0) {
+            String currentColor = session.colorFilter;
+            Material colorMaterial = colorSwitchMaterial ? getMaterialForColor(currentColor) : colorSortBtn.mat;
+            
+            // Get color display name from tags.yml
+            String colorDisplayName = getColorDisplayName(currentColor);
+            
+            ModalItem colorItem = buildNavButton("color-sort-button", colorMaterial, Map.of("color", colorDisplayName));
+            colorItem.setAction(event -> {
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    String nextColor = getNextColor(currentColor);
+                    session.colorFilter = nextColor;
+                    openTagsGui(player, null, 0); // Reset to page 0 when changing filter
+                });
+            });
+            modal.setItem(colorSortBtn.slot, colorItem);
+        }
+
+        // Add reset button
+        if (resetBtn.slot >= 0) {
+            ModalItem resetItem = buildNavButton("reset-button", resetBtn.mat, Map.of());
+            resetItem.setAction(event -> {
+                data.setActive(player.getUniqueId(), "none");
+                sendMessage(player, plugin.getConfig().getString("settings.messages.tag-reset", ""));
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    openTagsGui(player, null, -999); // Keep current page
+                });
+            });
+            modal.setItem(resetBtn.slot, resetItem);
+        }
+
+        // Add back button
+        if (backBtn.slot >= 0) {
+            ModalItem backItem = buildNavButton("back-button", backBtn.mat, Map.of());
+            backItem.setAction(event -> {
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (defaultView.equals("category")) {
+                        openCategoryGui(player);
+                    } else {
+                        player.closeInventory();
                     }
                 });
-        modal.setItem(resetSlot, resetButton);
+            });
+            modal.setItem(backBtn.slot, backItem);
+        }
 
-        // Active tag display
-        int activeSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.active-tag-item-slot-tags", 53);
-        String activeId = this.data.get(player.getUniqueId()).active;
-        String activeName = activeId != null && !activeId.equalsIgnoreCase("none") && this.tags.byId(activeId).isPresent()
-                ? PlainTextComponentSerializer.plainText().serialize(this.tags.byId(activeId).get().name())
-                : this.tagCfg.getString("settings.system.empty-tag.name", "&7None");
-        
-        ModalItem activeButton = ItemBuilder.from(Material.NAME_TAG)
-                .name(this.textUtility.parseText("&6Active Tag &8• &7" + activeName))
-                .asModalItem(event -> {
-                    // Maybe open a submenu or do nothing
-                });
-        modal.setItem(activeSlot, activeButton);
+        // Add close button
+        if (closeBtn.slot >= 0) {
+            ModalItem closeItem = buildNavButton("close-button", closeBtn.mat, Map.of());
+            closeItem.setAction(event -> handleTopClose(player));
+            modal.setItem(closeBtn.slot, closeItem);
+        }
 
-        // Back/Close buttons
-        boolean topTags = this.defaultView.equals("tags");
-        if (this.swapGlobal && topTags) {
-            int closeSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.close-button-slot-tags", 45);
-            ModalItem closeButton = ItemBuilder.from(Material.BARRIER)
-                    .name(this.textUtility.parseText("&cExit"))
-                    .asModalItem(event -> {
-                        if (event.getWhoClicked() instanceof Player p) {
-                            this.handleTopClose(p);
-                        }
-                    });
-            modal.setItem(closeSlot, closeButton);
-        } else {
-            int backSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.back-button-slot-tags", 45);
-            ModalItem backButton = ItemBuilder.from(Material.SPECTRAL_ARROW)
-                    .name(this.textUtility.parseText("&cBack"))
-                    .asModalItem(event -> {
-                        if (event.getWhoClicked() instanceof Player p) {
-                            Bukkit.getScheduler().runTask(this.plugin, () -> 
-                                this.openCategoryGui(p));
-                        }
-                    });
-            modal.setItem(backSlot, backButton);
-
-            int closeSlot = this.plugin.getConfig().getInt("settings.gui.layout.items.close-button-slot-tags", 45);
-            ModalItem closeButton = ItemBuilder.from(Material.BARRIER)
-                    .name(this.textUtility.parseText("&cExit"))
-                    .asModalItem(event -> {
-                        if (event.getWhoClicked() instanceof Player p) {
-                            this.handleTopClose(p);
-                        }
-                    });
-            modal.setItem(closeSlot, closeButton);
+        // Add active tag display
+        if (activeBtn.slot >= 0) {
+            String activeId = data.get(player.getUniqueId()).active;
+            String activeName = activeId != null && !activeId.equalsIgnoreCase("none") && !tags.byId(activeId).isEmpty() 
+                ? componentToLegacyString(tags.byId(activeId).get().name())
+                : tagCfg.getString("settings.system.empty-tag.name", "None");
+            
+            ModalItem activeItem = buildNavButton("active-tag", activeBtn.mat, Map.of("tag", activeName));
+            modal.setItem(activeBtn.slot, activeItem);
         }
     }
 
     private ModalItem buildTagItem(Player player, TagModal.Tag tag) {
-        PlayerDataModule.PlayerData pd = this.data.get(player.getUniqueId());
-        boolean unlocked = pd.unlocked.contains(tag.id()) || tag.cost() == 0 || !this.eco.active();
+        PlayerDataModule.PlayerData pd = data.get(player.getUniqueId());
+        boolean unlocked = pd.unlocked.contains(tag.id()) || tag.cost() == 0 || !eco.active();
         
         ConfigModule.GameState state;
         if (!player.hasPermission(tag.permission())) {
@@ -574,246 +432,241 @@ public final class ModalProcessor {
             state = ConfigModule.GameState.LOCKED;
         }
 
-        String basePath = "settings.gui.tags.tag-items.";
+        // Use component directly - it's already parsed in TagModal
+        Component name = tag.name();
+        List<Component> lore = buildTagLore(tag, state, pd);
+
+        ModalItem item = ItemBuilder.from(tag.icon())
+            .name(name)
+            .lore(lore)
+            .asModalItem(event -> handleTagClick(player, tag, event.getClick()));
+
+        return item;
+    }
+
+    private List<Component> buildTagLore(TagModal.Tag tag, ConfigModule.GameState state, PlayerDataModule.PlayerData pd) {
+        String base = "settings.gui.tags.tag-items.";
         String lorePath = switch (state) {
-            case ACTIVE -> basePath + "active-lore";
-            case LOCKED -> basePath + "locked-lore";
-            case UNLOCKED -> basePath + "unlocked-lore";
-            default -> basePath + "protected-lore";
+            case ACTIVE -> base + "active-lore";
+            case LOCKED -> base + "locked-lore";
+            case UNLOCKED -> base + "unlocked-lore";
+            default -> base + "protected-lore";
         };
 
-        boolean isFavorite = pd.favorites.contains(tag.id());
-        String favMsg = this.tagCfg.getString("settings.system.favorite.msg." + (isFavorite ? "remove" : "add"), "");
-        String favState = this.tagCfg.getString("settings.system.favorite.state." + (isFavorite ? "enabled" : "disabled"), "");
-        
-        List<String> loreTemplate = this.plugin.getConfig().getStringList(lorePath);
+        boolean fav = pd.favorites.contains(tag.id());
+        String fmsg = tagCfg.getString("settings.system.favorite.msg." + (fav ? "remove" : "add"), "");
+        String fstate = tagCfg.getString("settings.system.favorite.state." + (fav ? "enabled" : "disabled"), "");
+
+        List<String> template = plugin.getConfig().getStringList(lorePath);
         List<Component> lore = new ArrayList<>();
-        
-        for (String line : loreTemplate) {
-            String replaced = line
-                    .replace("{display}", PlainTextComponentSerializer.plainText().serialize(tag.display()))
-                    .replace("{cost}", String.valueOf(tag.cost()))
-                    .replace("{status}", this.tags.statusText(state))
-                    .replace("{favoritemsg}", favMsg)
-                    .replace("{favoritestate}", favState);
-            
-            if (replaced.contains("{description}")) {
-                String[] parts = replaced.split("\\{description\\}", -1);
-                Component prefix = this.textUtility.parseText(parts[0]);
-                Component suffix = parts.length > 1 ? this.textUtility.parseText(parts[1]) : Component.empty();
-                
+
+        for (String line : template) {
+            String processed = line
+                .replace("{display}", componentToLegacyString(tag.display()))
+                .replace("{cost}", String.valueOf(tag.cost()))
+                .replace("{status}", tags.statusText(state))
+                .replace("{favoritemsg}", fmsg)
+                .replace("{favoritestate}", fstate);
+
+            if (processed.contains("{description}")) {
+                String[] parts = processed.split("\\{description\\}", -1);
+                Component before = parseText(parts[0]);
+                Component after = parts.length > 1 ? parseText(parts[1]) : Component.empty();
+
                 for (Component desc : tag.description()) {
-                    lore.add(prefix.append(desc).append(suffix));
+                    lore.add(before.append(desc).append(after));
                 }
             } else {
-                lore.add(this.textUtility.parseText(replaced));
+                lore.add(parseText(processed));
             }
         }
 
-        Material material = isFavorite ? Material.NAME_TAG : tag.icon(); // Use favorite material if favorited
-        
-        ItemBuilder itemBuilder = ItemBuilder.from(material)
-                .name(tag.name())
-                .lore(lore);
-
-        if (isFavorite) {
-            int customModelData = this.plugin.getConfig().getInt("settings.gui.layout.materials.favorite-tag-material.custom-model-data", 0);
-            if (customModelData > 0) {
-                itemBuilder.modelData(customModelData);
-            }
-        }
-
-        if (state == ConfigModule.GameState.ACTIVE && this.plugin.getConfig().getBoolean("settings.system.active-tag-glow", true)) {
-            itemBuilder.glow();
-        }
-
-        return itemBuilder.asModalItem(event -> {
-            if (event.getWhoClicked() instanceof Player p) {
-                this.handleTagClick(p, tag, event.getClick());
-            }
-        });
+        return lore;
     }
 
     private void handleTagClick(Player player, TagModal.Tag tag, ClickType click) {
-        PlayerDataModule.PlayerData pd = this.data.get(player.getUniqueId());
-        boolean unlocked = pd.unlocked.contains(tag.id()) || tag.cost() == 0 || !this.eco.active();
-        
+        PlayerDataModule.PlayerData pd = data.get(player.getUniqueId());
+        boolean unlocked = pd.unlocked.contains(tag.id()) || tag.cost() == 0 || !eco.active();
+
         switch (click) {
             case LEFT:
                 if (unlocked) {
-                    this.data.setActive(player.getUniqueId(), tag.id());
-                    String message = this.plugin.getConfig().getString("settings.messages.tag-activate", "");
-                    message = message.replace("{activetag}", PlainTextComponentSerializer.plainText().serialize(tag.name()))
-                            .replace("{tagdisplay}", PlainTextComponentSerializer.plainText().serialize(tag.display()));
-                    message = this.replaceConditionPlaceholders(message);
-                    Component msg = this.textUtility.parseText(message);
-                    player.sendMessage(msg);
+                    data.setActive(player.getUniqueId(), tag.id());
+                    String message = plugin.getConfig().getString("settings.messages.tag-activate", "");
+                    message = message.replace("{activetag}", componentToLegacyString(tag.name()))
+                        .replace("{tagdisplay}", componentToLegacyString(tag.display()));
+                    sendMessage(player, message);
                 } else {
-                    String message = this.plugin.getConfig().getString("settings.messages.tag-locked", "");
-                    message = message.replace("{tag}", PlainTextComponentSerializer.plainText().serialize(tag.name()));
-                    message = this.replaceConditionPlaceholders(message);
-                    Component msg = this.textUtility.parseText(message);
-                    player.sendMessage(msg);
+                    String message = plugin.getConfig().getString("settings.messages.tag-locked", "");
+                    message = message.replace("{tag}", componentToLegacyString(tag.name()));
+                    sendMessage(player, message);
                 }
                 break;
             case SHIFT_LEFT:
                 if (!unlocked) {
-                    this.attemptPurchase(player, tag);
+                    attemptPurchase(player, tag);
                 }
                 break;
             case RIGHT:
-                this.data.toggleFavorite(player.getUniqueId(), tag.id());
-                break;
             case MIDDLE:
-                this.data.toggleFavorite(player.getUniqueId(), tag.id());
-                if (unlocked) {
-                    this.data.setActive(player.getUniqueId(), tag.id());
+                data.toggleFavorite(player.getUniqueId(), tag.id());
+                if (click == ClickType.MIDDLE && unlocked) {
+                    data.setActive(player.getUniqueId(), tag.id());
                 }
                 break;
         }
 
-        Bukkit.getScheduler().runTask(this.plugin, () -> this.openTagsGui(player, null, -999));
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            openTagsGui(player, null, -999);
+        });
     }
 
     private void attemptPurchase(Player player, TagModal.Tag tag) {
         double cost = tag.cost();
-        if (!this.eco.canAfford(player, cost)) {
-            String message = this.plugin.getConfig().getString("settings.messages.tag-balance", "&cInsufficient funds. &7You need &c{cost} &7to unlock the {tag} &7tag.")
-                    .replace("{cost}", String.valueOf(cost))
-                    .replace("{tag}", PlainTextComponentSerializer.plainText().serialize(tag.name()));
-            Component msg = this.textUtility.parseText(message);
-            player.sendMessage(msg);
+        if (!eco.canAfford(player, cost)) {
+            String message = plugin.getConfig().getString("settings.messages.tag-balance", 
+                "Insufficient funds. You need {cost} to unlock the {tag} tag.")
+                .replace("{cost}", String.valueOf(cost))
+                .replace("{tag}", componentToLegacyString(tag.name()));
+            sendMessage(player, message);
         } else {
-            this.eco.withdraw(player, cost);
-            this.data.unlockTag(player.getUniqueId(), tag.id());
-            String message = this.plugin.getConfig().getString("settings.messages.tag-unlocked", "")
-                    .replace("{cost}", String.valueOf(cost))
-                    .replace("{tag}", PlainTextComponentSerializer.plainText().serialize(tag.name()));
-            Component msg = this.textUtility.parseText(message);
-            player.sendMessage(msg);
+            eco.withdraw(player, cost);
+            data.unlockTag(player.getUniqueId(), tag.id());
+            String message = plugin.getConfig().getString("settings.messages.tag-unlocked", "")
+                .replace("{cost}", String.valueOf(cost))
+                .replace("{tag}", componentToLegacyString(tag.name()));
+            sendMessage(player, message);
         }
+    }
+
+    private ModalItem buildNavButton(String key, Material mat, Map<String, String> vars) {
+        String rawTitle = "";
+        
+        // Handle special cases for category and favorite sort buttons
+        if (key.equals("category-sort-button")) {
+            rawTitle = catCfg.getString("settings.system.category-sort.sort-button.name", "&7CATEGORY &8• {filter}");
+        } else if (key.equals("favorite-sort-button")) {
+            rawTitle = catCfg.getString("settings.system.favorites-sort.sort-button.name", "&7FAVORITES &8• {sort}");
+        } else {
+            // Get title from config.yml for other buttons
+            String titlePath = "settings.gui.layout.titles." + key + "-name";
+            rawTitle = plugin.getConfig().getString(titlePath, "MISSING_TITLE_" + key);
+        }
+
+        // Replace all variables in the title
+        for (Map.Entry<String, String> entry : vars.entrySet()) {
+            rawTitle = rawTitle.replace("{" + entry.getKey() + "}", entry.getValue());
+        }
+        
+        // Also handle alternate variable names
+        if (key.equals("favorite-sort-button")) {
+            rawTitle = rawTitle.replace("{sort-type}", vars.getOrDefault("sort", ""));
+        }
+
+        // Log for debugging
+        plugin.getLogger().info("Building nav button '" + key + "' with title: '" + rawTitle + "' and material: " + mat.name());
+
+        // Use CoreFramework TextUtility directly
+        Component title = parseText(rawTitle);
+        
+        ItemBuilder builder = ItemBuilder.from(mat).name(title);
+
+        // Get lore from config.yml
+        String lorePath = "settings.gui.layout.lore." + key + "-lore";
+        ConfigurationSection loreSec = plugin.getConfig().getConfigurationSection(lorePath);
+        if (loreSec != null && loreSec.getBoolean("enabled", false)) {
+            List<Component> lore = loreSec.getStringList("lore").stream()
+                .map(line -> {
+                    // Replace variables in lore lines too
+                    String processedLine = line;
+                    for (Map.Entry<String, String> entry : vars.entrySet()) {
+                        processedLine = processedLine.replace("{" + entry.getKey() + "}", entry.getValue());
+                    }
+                    // Use CoreFramework TextUtility directly
+                    return parseText(processedLine);
+                })
+                .collect(Collectors.toList());
+            builder.lore(lore);
+        }
+
+        // Check for enchantment glint
+        String matKey = key + "-material";
+        boolean glint = plugin.getConfig().getBoolean("settings.gui.layout.materials." + matKey + ".enchantment-glint", false);
+        if (glint) {
+            builder.glow();
+        }
+
+        return builder.asModalItem();
     }
 
     private List<TagModal.Tag> applyFilterAndSort(Player player, GuiSession session) {
         String filter = session.filter.toUpperCase(Locale.ROOT);
-        List<TagModal.Tag> src = switch (filter) {
-            case "ALL" -> this.accessibleTags(player);
-            case "FAVORITES" -> this.accessibleTags(player).stream()
-                    .filter(t -> this.data.get(player.getUniqueId()).favorites.contains(t.id()))
-                    .toList();
-            case "UNLOCKED" -> this.accessibleTags(player).stream()
-                    .filter(t -> this.data.get(player.getUniqueId()).unlocked.contains(t.id()) || t.cost() == 0 || !this.eco.active())
-                    .toList();
-            case "LOCKED" -> this.accessibleTags(player).stream()
-                    .filter(t -> !this.data.get(player.getUniqueId()).unlocked.contains(t.id()) && t.cost() != 0 && this.eco.active())
-                    .toList();
-            case "PROTECTED" -> this.cats.all().stream()
+        List<TagModal.Tag> src;
+
+        switch (filter) {
+            case "ALL":
+                src = accessibleTags(player);
+                break;
+            case "FAVORITES":
+                src = accessibleTags(player).stream()
+                    .filter(t -> data.get(player.getUniqueId()).favorites.contains(t.id()))
+                    .collect(Collectors.toList());
+                break;
+            case "UNLOCKED":
+                src = accessibleTags(player).stream()
+                    .filter(t -> data.get(player.getUniqueId()).unlocked.contains(t.id()) || t.cost() == 0 || !eco.active())
+                    .collect(Collectors.toList());
+                break;
+            case "LOCKED":
+                src = accessibleTags(player).stream()
+                    .filter(t -> !data.get(player.getUniqueId()).unlocked.contains(t.id()) && t.cost() != 0 && eco.active())
+                    .collect(Collectors.toList());
+                break;
+            case "PROTECTED":
+                src = cats.all().stream()
                     .filter(CategoryModal.TagCategory::isProtected)
-                    .flatMap(c -> this.tags.byCategory(c.key()).stream())
-                    .toList();
-            default -> this.tags.byCategory(session.filter);
-        };
+                    .flatMap(c -> tags.byCategory(c.key()).stream())
+                    .collect(Collectors.toList());
+                break;
+            default:
+                src = tags.byCategory(session.filter);
+        }
 
         if (!session.colorFilter.equalsIgnoreCase("ALL")) {
-            String colorFilter = session.colorFilter.equals("GREY") ? "GRAY" : session.colorFilter;
+            String cf = session.colorFilter.equals("GREY") ? "GRAY" : session.colorFilter;
             src = src.stream()
-                    .filter(tag -> tag.color().equalsIgnoreCase(colorFilter))
-                    .toList();
+                .filter(tag -> tag.color().equalsIgnoreCase(cf))
+                .collect(Collectors.toList());
         }
 
         if (session.sort == Sort.SORTED) {
-            Set<String> favorites = this.data.get(player.getUniqueId()).favorites;
+            Set<String> favs = data.get(player.getUniqueId()).favorites;
             src = src.stream()
-                    .sorted(Comparator.comparing((TagModal.Tag t) -> !favorites.contains(t.id()))
-                            .thenComparing(t -> PlainTextComponentSerializer.plainText().serialize(t.name()), String.CASE_INSENSITIVE_ORDER))
-                    .collect(Collectors.toList());
+                .sorted(Comparator.comparing((TagModal.Tag t) -> !favs.contains(t.id()))
+                    .thenComparing(t -> componentToLegacyString(t.name()), String.CASE_INSENSITIVE_ORDER))
+                .collect(Collectors.toList());
         }
 
         return src;
     }
 
     private List<TagModal.Tag> accessibleTags(Player player) {
-        return this.cats.all().stream()
-                .filter(c -> player.hasPermission(c.permission()))
-                .sorted(Comparator.comparingInt(CategoryModal.TagCategory::slot))
-                .flatMap(c -> this.tags.byCategory(c.key()).stream())
-                .collect(Collectors.toList());
-    }
-
-    private List<String> filterOrder(Player player) {
-        List<String> order = new ArrayList<>();
-        ConfigurationSection fs = this.catCfg.getConfigurationSection("settings.system.category-sort.filters");
-        if (fs != null) {
-            for (String key : fs.getKeys(false)) {
-                String id = fs.getString(key + ".id", key).toUpperCase(Locale.ROOT);
-                order.add(id);
-            }
-        }
-
-        this.cats.all().forEach(c -> {
-            String id = c.key().toUpperCase(Locale.ROOT);
-            if (!order.contains(id) && player.hasPermission(c.permission())) {
-                order.add(id);
-            }
-        });
-
-        return order;
-    }
-
-    private String nextFilter(Player player, String current) {
-        List<String> order = this.filterOrder(player);
-        int index = order.indexOf(current.toUpperCase(Locale.ROOT));
-        if (index < 0) index = 0;
-        return order.get((index + 1) % order.size());
-    }
-
-    private String prevFilter(Player player, String current) {
-        List<String> order = this.filterOrder(player);
-        int index = order.indexOf(current.toUpperCase(Locale.ROOT));
-        if (index < 0) index = 0;
-        return order.get((index - 1 + order.size()) % order.size());
-    }
-
-    private String nextColor(String current) {
-        int index = COLORS.indexOf(current.toUpperCase(Locale.ROOT));
-        if (index < 0) index = 0;
-        return COLORS.get((index + 1) % COLORS.size());
-    }
-
-    private String prevColor(String current) {
-        int index = COLORS.indexOf(current.toUpperCase(Locale.ROOT));
-        if (index < 0) index = 0;
-        return COLORS.get((index - 1 + COLORS.size()) % COLORS.size());
-    }
-
-    private Component categoryButtonName(String filterKey) {
-        String base = "settings.system.category-sort.";
-        String pattern = this.catCfg.getString(base + "sort-button.name", "&7CATEGORY &8• {filter}");
-        String name = this.catCfg.getString(base + "filters." + filterKey.toLowerCase(Locale.ROOT) + ".name", filterKey);
-        return this.textUtility.parseText(pattern.replace("{filter}", name));
-    }
-
-    private Component favoriteButtonName(Sort sort) {
-        String base = "settings.system.favorites-sort.";
-        String pattern = this.catCfg.getString(base + "sort-button.name", "&7FAVORITES &8• {sort-type}");
-        String key = sort.name().toLowerCase(Locale.ROOT);
-        String name = this.catCfg.getString(base + "sort-type." + key + ".name", sort.name());
-        return this.textUtility.parseText(pattern.replace("{sort-type}", name));
-    }
-
-    private Component colorButtonTitle(String colorKey) {
-        String path = "settings.system.colors." + colorKey.toLowerCase(Locale.ROOT) + ".text";
-        String raw = this.plugin.getConfig().getString(path, colorKey);
-        return this.textUtility.parseText(raw);
+        return cats.all().stream()
+            .filter(c -> player.hasPermission(c.permission()))
+            .sorted(Comparator.comparingInt(CategoryModal.TagCategory::slot))
+            .flatMap(c -> tags.byCategory(c.key()).stream())
+            .collect(Collectors.toList());
     }
 
     private void handleTopClose(Player player) {
-        if (this.closeCfg.enabled()) {
-            if (this.closeCfg.closeGuiFirst()) {
+        if (closeCfg.enabled()) {
+            if (closeCfg.closeGuiFirst()) {
                 player.closeInventory();
-                Bukkit.getScheduler().runTask(this.plugin, () -> this.runCloseCommands(player));
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    runCloseCommands(player);
+                });
             } else {
-                this.runCloseCommands(player);
+                runCloseCommands(player);
                 player.closeInventory();
             }
         } else {
@@ -822,36 +675,206 @@ public final class ModalProcessor {
     }
 
     private void runCloseCommands(Player player) {
-        for (String cmd : this.closeCfg.commands()) {
+        for (String cmd : closeCfg.commands()) {
             if (cmd != null && !cmd.isBlank()) {
                 String command = cmd.replace("%player%", player.getName());
-                if (this.closeCfg.runAsConsole()) {
-                    this.plugin.getServer().dispatchCommand(this.plugin.getServer().getConsoleSender(), command);
+                if (closeCfg.runAsConsole()) {
+                    plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), command);
                 } else {
-                    this.plugin.getServer().dispatchCommand(player, command);
+                    plugin.getServer().dispatchCommand(player, command);
                 }
             }
         }
     }
 
-    private String replaceConditionPlaceholders(String message) {
-        ConfigurationSection conditionSection = this.plugin.getConfig().getConfigurationSection("settings.system.conditions");
-        if (conditionSection != null) {
-            for (String key : conditionSection.getKeys(false)) {
-                String conditionText = conditionSection.getString(key + ".text", "");
-                message = message.replace("{" + key + "}", conditionText);
+    private String getFilterDisplayName(String filter) {
+        // Get display name from categories.yml using the correct path structure
+        String configPath = "settings.system.category-sort.filters." + filter.toLowerCase() + ".name";
+        String displayName = catCfg.getString(configPath);
+        if (displayName != null) {
+            return displayName;
+        }
+        
+        // If it's a category name, get from categories section
+        if (!filter.equalsIgnoreCase("ALL") && !filter.equalsIgnoreCase("FAVORITES") && 
+            !filter.equalsIgnoreCase("UNLOCKED") && !filter.equalsIgnoreCase("LOCKED") && 
+            !filter.equalsIgnoreCase("PROTECTED")) {
+            String categoryPath = "settings.categories." + filter.toLowerCase() + ".name";
+            displayName = catCfg.getString(categoryPath);
+            if (displayName != null) {
+                return displayName;
             }
         }
-        return message;
+        
+        // Fallback to the filter name itself
+        return filter;
+    }
+    
+    private String getSortDisplayName(String sortType) {
+        // Get display name from categories.yml (not tags.yml) using correct path
+        String configPath = "settings.system.favorites-sort.sort-type." + sortType.toLowerCase() + ".name";
+        String displayName = catCfg.getString(configPath);
+        return displayName != null ? displayName : sortType;
+    }
+    
+    private String getColorDisplayName(String color) {
+        // Get display name from config.yml using the correct path
+        String configPath = "settings.system.colors." + color.toLowerCase() + ".text";
+        String displayName = plugin.getConfig().getString(configPath);
+        return displayName != null ? displayName : color;
     }
 
-    // Inner classes
-    private enum Sort {
+    private String getNextCategoryFilter(String current) {
+        // Get available category filters from config
+        List<String> filters = new ArrayList<>();
+        filters.add("ALL");
+        filters.add("FAVORITES");
+        filters.add("UNLOCKED");
+        filters.add("LOCKED");
+        filters.add("PROTECTED");
+        
+        // Add actual category names
+        cats.all().forEach(cat -> filters.add(cat.key().toUpperCase(Locale.ROOT)));
+        
+        int currentIndex = filters.indexOf(current.toUpperCase(Locale.ROOT));
+        if (currentIndex == -1) currentIndex = 0;
+        
+        int nextIndex = (currentIndex + 1) % filters.size();
+        return filters.get(nextIndex);
+    }
+
+    private String getNextColor(String current) {
+        int currentIndex = COLORS.indexOf(current.toUpperCase(Locale.ROOT));
+        if (currentIndex == -1) currentIndex = 0;
+        
+        int nextIndex = (currentIndex + 1) % COLORS.size();
+        return COLORS.get(nextIndex);
+    }
+
+    private Material getMaterialForFilter(String filter) {
+        // First try to get material from category-sort-button-switch-material section
+        String switchMaterialPath = "settings.gui.layout.materials.category-sort-button-switch-material.material." + filter.toLowerCase() + ".material";
+        String materialName = plugin.getConfig().getString(switchMaterialPath);
+        
+        plugin.getLogger().info("Looking for filter switch material at path: " + switchMaterialPath + " = " + materialName);
+        
+        if (materialName != null) {
+            try {
+                Material result = Material.valueOf(materialName.toUpperCase(Locale.ROOT));
+                plugin.getLogger().info("Found filter switch material: " + result.name() + " for filter: " + filter);
+                return result;
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("Invalid switch material '" + materialName + "' for filter '" + filter + "'");
+            }
+        }
+        
+        // If it's a category, try to get material from category definition
+        if (!filter.equalsIgnoreCase("ALL") && !filter.equalsIgnoreCase("FAVORITES") && 
+            !filter.equalsIgnoreCase("UNLOCKED") && !filter.equalsIgnoreCase("LOCKED") && 
+            !filter.equalsIgnoreCase("PROTECTED")) {
+            String categoryPath = "settings.categories." + filter.toLowerCase() + ".material";
+            materialName = catCfg.getString(categoryPath);
+            plugin.getLogger().info("Looking for category material at path: " + categoryPath + " = " + materialName);
+            if (materialName != null) {
+                try {
+                    Material result = Material.valueOf(materialName.toUpperCase(Locale.ROOT));
+                    plugin.getLogger().info("Found category material: " + result.name() + " for filter: " + filter);
+                    return result;
+                } catch (IllegalArgumentException e) {
+                    plugin.getLogger().warning("Invalid material '" + materialName + "' for category '" + filter + "'");
+                }
+            }
+        }
+        
+        plugin.getLogger().info("Using fallback material: " + catBtn.mat.name() + " for filter: " + filter);
+        return catBtn.mat; // Fallback to default material
+    }
+
+    private Material getMaterialForColor(String color) {
+        // Get material from config.yml using the correct path for color switch materials
+        String switchMaterialPath = "settings.gui.layout.materials.color-sort-button-switch-material.material." + color.toLowerCase() + ".material";
+        String materialName = plugin.getConfig().getString(switchMaterialPath);
+        
+        plugin.getLogger().info("Looking for color switch material at path: " + switchMaterialPath + " = " + materialName);
+        
+        if (materialName != null) {
+            try {
+                Material result = Material.valueOf(materialName.toUpperCase(Locale.ROOT));
+                plugin.getLogger().info("Found color switch material: " + result.name() + " for color: " + color);
+                return result;
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("Invalid switch material '" + materialName + "' for color '" + color + "'");
+            }
+        }
+        
+        plugin.getLogger().info("Using fallback material: " + colorSortBtn.mat.name() + " for color: " + color);
+        return colorSortBtn.mat; // Fallback to default material
+    }
+
+    private String componentToLegacyString(Component component) {
+        try {
+            // Use LegacyComponentSerializer to convert back to legacy format
+            return LegacyComponentSerializer.legacyAmpersand().serialize(component);
+        } catch (Exception e) {
+            return component.toString();
+        }
+    }
+
+    private Component parseText(String text) {
+        try {
+            // Use CoreFramework TextUtility for text parsing
+            Class<?> textUtilityClass = Class.forName("io.rhythmknights.coreframework.component.utility.TextUtility");
+            Method parseMethod = textUtilityClass.getMethod("parse", String.class);
+            return (Component) parseMethod.invoke(null, text);
+        } catch (Exception e) {
+            // Fallback to basic Component creation
+            return Component.text(text);
+        }
+    }
+
+    private void sendMessage(Player player, String message) {
+        try {
+            // Use CoreFramework TextUtility for message sending
+            Class<?> textUtilityClass = Class.forName("io.rhythmknights.coreframework.component.utility.TextUtility");
+            Method sendPlayerMessage = textUtilityClass.getMethod("sendPlayerMessage", Player.class, String.class);
+            sendPlayerMessage.invoke(null, player, message);
+        } catch (Exception e) {
+            // Fallback to basic message sending
+            player.sendMessage(message);
+        }
+    }
+
+    private Material mat(String key) {
+        String base = "settings.gui.layout.materials.";
+        ConfigurationSection sec = plugin.getConfig().getConfigurationSection(base + key);
+        if (sec == null) {
+            plugin.getLogger().warning("Missing config for '" + base + key + "'");
+            return Material.STONE;
+        }
+
+        String raw = sec.getString("material");
+        try {
+            return Material.valueOf(raw.toUpperCase(Locale.ROOT));
+        } catch (Exception e) {
+            plugin.getLogger().warning("Invalid material '" + raw + "' at '" + base + key + "'");
+            return Material.STONE;
+        }
+    }
+
+    private int slot(String path) {
+        return plugin.getConfig().getInt(path, 0);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onInventoryClose(org.bukkit.event.inventory.InventoryCloseEvent event) {
+        open.remove(event.getPlayer().getUniqueId());
+    }
+
+    // Helper classes
+    private static record Btn(Material mat, int slot) {}
+
+    private static enum Sort {
         UNSORTED, SORTED
-    }
-
-    private enum GuiType {
-        CATEGORY, TAGS
     }
 
     private static final class GuiSession {
@@ -861,12 +884,16 @@ public final class ModalProcessor {
         Sort sort;
         String colorFilter;
 
-        GuiSession(GuiType type, int page, String filter, Sort sort, String colorFilter) {
-            this.type = type;
-            this.page = page;
-            this.filter = filter;
-            this.sort = sort;
-            this.colorFilter = colorFilter;
+        GuiSession(GuiType t, int p, String f, Sort s, String c) {
+            this.type = t;
+            this.page = p;
+            this.filter = f;
+            this.sort = s;
+            this.colorFilter = c;
         }
+    }
+
+    private static enum GuiType {
+        CATEGORY, TAGS
     }
 }

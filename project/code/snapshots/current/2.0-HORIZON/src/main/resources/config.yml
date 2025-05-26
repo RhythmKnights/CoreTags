@@ -1,0 +1,428 @@
+settings:
+  system:
+    default-tag: none # if set to 'none' players start with no tag applied, otherwise, the a value such as 'default' means to use the item under components/tags.yml in the value 'tags.default' or whatever the name of the tag is. 
+    default-view: category # category = show the category page first when using /coretags or its aliases, tags = skip to tags 
+    active-tag-glow: true # true = adds an enchantment glint to the active tag
+    favorites: true # true = players can set favorites
+    favorites-sort: sorted # default order to sort favorited tags into
+    cost-system: true # true = players must pay the cost to unlock new tags
+    system-msgs: true # true = plugin will send a message when a tag is unlocked, activated, protected, reset, or favorited as outlined below
+    close-on-activate: false # true = close the gui when a player sets a tag as active
+    show-protected: true # true = show the entry for tags the player is missing perms for in Category GUI and filter views, false = hidden
+    close-button-swap: true # true = replace back button with close button on the parent modal
+    close-button-cmd:
+      enabled: true # true = run the command listed below when the player clicks the close button. Otherwise, simply close the player inventory
+      close-gui: false # true = run the close gui logic first and run the command 1 tick later, false = run the command immediately
+      command:
+      - cp playermenu
+      command-type: player # player = run the above command as the player, console = run the command as the console
+    conditions:
+      confirm:
+        text: '<gold>CONFIRM</gold>'
+      cancel:
+        text: '<red>CANCEL</red>'
+      allow:
+        text: '<green>ALLOW</green>'
+      deny:
+        text: '<red>DENY</red>'
+      timer:
+        text: '<red>{value}</red>'
+      expired:
+        text: '<dark_grey>EXPIRED</dark_grey>'
+      active:
+        text: '<gold>ACTIVE</gold>'
+    colors:
+      all:
+        text: '<gold>ALL</gold>'
+      multi:
+        text: '<blue>M</blue><green>U</green><yellow>L</yellow><red>T</red><light_purple>I</light_purple>'
+      red:
+        text: '<red>RED</red>'
+      orange:
+        text: '<#e06101>ORANGE</#e06101>'
+      yellow:
+        text: '<yellow>YELLOW</yellow>'
+      green:
+        text: '<green>GREEN</green>'
+      blue:
+        text: '<blue>BLUE</blue>'
+      purple:
+        text: '<dark_purple>PURPLE</dark_purple>'
+      pink:
+        text: '<#d5658f>PINK</#d5658f>'
+      brown:
+        text: '<#603c20>BROWN</#603c20>'
+      grey:
+        text: '<grey>GREY</grey>'
+      black:
+        text: '<dark_grey>BLACK</dark_grey>'
+      white:
+        text: '<white>WHITE</white>'
+      
+  
+  messages:
+    enable-prefix: true
+    prefix: '&8&l[&#33AADD&lCoreTags&8&l] '
+    tag-reset: '&6Active Tag &7has been &creset to default&7.' # msg when player resets their tag settings
+    tag-activate: '{activetag} &7set to {active}&7.' # msg when player sets a tag to active
+    tag-balance: '&cInsufficient funds. &7You need &c{cost} &7to unlock the {tag} &7tag.' # msg when player doesnt have enough balance to purchase the tag.
+    tag-unlocked: '{tag} &7has been &2unlocked&7.' # msg when player purchases/unlocks a tag.
+    tag-locked: '{tag} <grey>is <red>locked<grey>. To &2unlock &7a tag, hold <#2ECC71>ꜱʜɪꜰᴛ</#2ECC71> &7+ &f⸶ <#2ECC71>ʟᴇꜰᴛ ᴄʟɪᴄᴋ</#2ECC71> the tag.' # msg when player tries to activate a locked tag.
+    tag-authorize: '{tag} &7has been &2unlocked&7.'
+    tag-revoke: '{tag} &7has been &clocked&7.' # msg when an admin locks a tag for the player or their perms have changed.
+    # UNUSED msg-timeout: '&7No action was taken within the allotted time. All changes have been {canceled}.'
+    # UNUSED no-permission: '{tag} &cis &dPROTECTED &cand cannot be unlocked.' # msg when player attempts to set a tag as active without the needed perms/
+    msg-reload: '&7Configuration successfully &2reloaded&7.' # msg when admin uses /coretags reload
+    # NOT WORKING silent-unlock: false # true = do not send a message to the target player(s) when UNLOCKING the tag with a command or upon login if synced from luck perms
+    # NOT WORKING silent-lock: true # true = do not send a message to the target player(s) when LOCKING the tag with a command or upon login if synced from luck perms
+    convert-cost:
+      enabled: true # true = use the value below if the cost is 0
+      free: '&aFREE'
+  
+  gui:
+    category-menu:
+      title: '&8Tags | Categories'
+      rows: 4 # accepted values 1 thru 6
+    tags-menu:
+      title: '&8Tags'
+      rows: 6 # accepted values 1 thru 6
+    tags:
+      slots:
+        row1: 10..16
+        row2: 19..25
+        row3: 28..34
+        row4: 37..43
+        row5: ''
+        row6: '' # if a row value is blank like this, it means it is to be unused in the handler  
+      tag-items: # to edit the tags display name, please edit them in components/tags.yml
+        active-lore: # used when the tag state is ACTIVE
+          - '&8•&m                                                        &r&8•'
+          - ''
+          - '&7Display &8• {display}'
+          - ''
+          - '&7Description &8•'
+          - '&#33AADD  {description}'
+          - ''
+          - '&8⏵ &f⸷ &#2ECC71ʀɪɢʜᴛ ᴄʟɪᴄᴋ &8• {favoritemsg}'
+          - ''
+          - '&7Status &8• {status}'
+          - '&8•&m                                                        &r&8•'
+        locked-lore: # used when the tag state is LOCKED (not yet purchased)
+          - '&8•&m                                                        &r&8•'
+          - ''
+          - '&7Display &8• {display}'
+          - ''
+          - '&7Description &8•'
+          - '&#33AADD  {description}'
+          - ''
+          - '&8⏵ &#2ECC71ꜱʜɪꜰᴛ &7+ &f⸶ &#2ECC71ʟᴇꜰᴛ ᴄʟɪᴄᴋ &8• &6[Purchase]'
+          - '&8⏵ &f⸷ &#2ECC71ʀɪɢʜᴛ ᴄʟɪᴄᴋ &8• {favoritemsg}'
+          - ''
+          - '&7Cost &8• &f◎&b{cost}'
+          - ''
+          - '&7Status &8• {status}'
+          - '&8•&m                                                        &r&8•'
+        unlocked-lore: # used when the tag state is UNLOCKED (purchased)
+          - '&8•&m                                                        &r&8•'
+          - ''
+          - '&7Display &8• {display}'
+          - ''
+          - '&7Description &8•'
+          - '&#33AADD  {description}'
+          - ''
+          - '&8⏵ &f⸶ &#2ECC71ʟᴇꜰᴛ ᴄʟɪᴄᴋ &8• &6[Set as Active tag]'
+          - '&8⏵ &f⸷ &#2ECC71ʀɪɢʜᴛ ᴄʟɪᴄᴋ &8• {favoritemsg}'
+          - ''
+          - '&7Status &8• {status}'
+          - '&8•&m                                                        &r&8•'
+        protected-lore: # used when the tag state is PROTECTED (user doesn't have perms)
+          - '&8•&m                                                        &r&8•'
+          - ''
+          - '&7Display &8• {display}'
+          - ''
+          - '&7Description &8•'
+          - '&#33AADD  {description}'
+          - ''
+          - '&8⏵ &f⸷ &#2ECC71ʀɪɢʜᴛ ᴄʟɪᴄᴋ &8• {favoritemsg}'
+          - ''
+          - '&7Status &8• {status}'
+          - '&8•&m                                                        &r&8•'
+    layout:
+      materials:
+        empty-slot-material:
+          material: GRAY_STAINED_GLASS_PANE # was scalar, now sub-key
+          material-modifier: -1
+          custom-model-data: -1
+          enchantment-glint: false
+        
+        category-sort-button-material:
+          material: GOLD_BLOCK
+          material-modifier: -1
+          custom-model-data: -1
+          enchantment-glint: false
+          material-switch: true
+        
+        favorite-sort-button-material:
+          material: NETHER_STAR
+          material-modifier: -1
+          custom-model-data: -1
+          enchantment-glint: false
+        
+        last-page-button-material:
+          material: ARROW
+          material-modifier: -1
+          custom-model-data: -1
+          enchantment-glint: false
+        
+        next-page-button-material:
+          material: ARROW
+          material-modifier: -1
+          custom-model-data: -1
+          enchantment-glint: false
+        
+        reset-button-material:
+          material: RED_DYE
+          material-modifier: -1
+          custom-model-data: -1
+          enchantment-glint: false
+        
+        active-tag-material:
+          material: NAME_TAG
+          material-modifier: -1
+          custom-model-data: -1
+          enchantment-glint: true
+        
+        back-button-material:
+          material: SPECTRAL_ARROW
+          material-modifier: -1
+          custom-model-data: -1
+          enchantment-glint: false
+        
+        close-button-material:
+          material: BARRIER
+          material-modifier: -1
+          custom-model-data: -1
+          enchantment-glint: false
+        
+        favorite-tag-material:
+          material: NAME_TAG
+          material-modifier: -1
+          custom-model-data: 500
+          enchantment-glint: false
+
+        color-sort-button-material:
+          material: BRUSH
+          material-modifier: -1
+          custom-model-data: -1
+          enchantment-glint: false
+          material-switch: true
+        
+        color-sort-button-switch-material:
+          material:
+            all:
+              material: BRUSH
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            multi:
+              material: TEST_BLOCK
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            red:
+              material: RED_CONCRETE
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            orange:
+              material: ORANGE_CONCRETE
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            yellow:
+              material: YELLOW_CONCRETE
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            green:
+              material: LIME_CONCRETE
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            blue:
+              material: LIGHT_BLUE_CONCRETE
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            purple:
+              material: PURPLE_CONCRETE
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            pink:
+              material: PINK_CONCRETE
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            brown:
+              material: TERRACOTTA
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            gray:
+              material: LIGHT_GRAY_CONCRETE
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            black:
+              material: BLACK_CONCRETE
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            white:
+              material: WHITE_CONCRETE
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+              
+        category-sort-button-switch-material:
+          material:
+            all:
+              material: BOOKSHELF
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            favorites:
+              material: LIGHT_BLUE_SHULKER_BOX
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            unlocked:
+              material: LIME_SHULKER_BOX
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            locked:
+              material: RED_SHULKER_BOX
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            protected:
+              material: PURPLE_SHULKER_BOX
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            default:
+              material: LIGHT_GRAY_SHULKER_BOX
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            premium:
+              material: YELLOW_SHULKER_BOX
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+            special:
+              material: BLUE_SHULKER_BOX
+              material-modifier: -1
+              custom-model-data: -1
+              enchantment-glint: false
+          
+      titles: # item names in the gui
+        empty-slot-name: ''
+        category-gui-name: '&7Tags &8| &6Categories'
+        tags-gui-name: '&7Tags &8| {category} &7({currentpage}/{totalpages})'
+        color-sort-button-name: '&7COLOR &8• &7{color}'
+        last-page-button-name: '&7Previous Page'
+        next-page-button-name: '&7Next Page'
+        reset-button-name: '&cReset Tag'
+        active-tag-name: '&6Active Tag &8• &7{tag}'
+        back-button-name: '&cBack'
+        close-button-name: '&cExit'
+      lore: # lore for tooltips in the gui
+        empty-slot-lore:
+          enabled: false
+          lore:
+          - ''
+        category-sort-button-lore:
+          enabled: true
+          lore:
+          - Left Click [Next Category]
+          - Right Click [Last Category]
+        favorite-sort-button-lore:
+          enabled: true
+          lore:
+          - Left Click [Change Sort Type]
+        color-sort-button-lore:
+          enabled: true
+          lore:
+           - Left Click [Next Color]
+           - Right Click [Previous Color]
+        last-page-button-lore:
+          enabled: false
+          lore:
+          - ''
+        next-page-button-lore:
+          enabled: false
+          lore:
+          - ''
+        reset-button-lore:
+          enabled: true
+          lore:
+          - Left Click [Reset Tag to Default]
+        active-tag-lore:
+          enabled: false
+          lore:
+          - ''
+        back-button-lore:
+          enabled: false
+          lore:
+          - ''
+      items: # setting these values to false will not display the item in the gui, setting the slot number will decide where it is placed
+        empty-slot-item:
+          category-gui:
+            enabled: false
+            slots:
+            - 0..7
+            - 9
+            - 17
+            - 18..26
+            - 28..34
+          tags-gui:
+            enabled: false
+            slots:
+            - 1..7
+            - 9
+            - 17
+            - 18
+            - 26
+            - 27
+            - 35
+            - 36
+            - 44
+            - 46
+            - 47
+            - 51
+            - 52
+        category-sort-button: true # this only applies to tags gui.
+        category-sort-button-slot: 17 # this only applies to tags gui.
+        favorite-sort-button: true # this only applies to tags gui.
+        favorite-sort-button-slot: 26 # this only applies to tags gui.
+        color-sort-button: true # this only applies to tags gui.
+        color-sort-button-slot: 35 # this only applies to tags gui.
+        last-page-button: true # this only applies to tags gui.
+        last-page-button-slot: 48 # this only applies to tags gui.
+        next-page-button: true # this only applies to tags gui.
+        next-page-button-slot: 50 # this only applies to tags gui.
+        reset-button: true # this applies to both category and tags gui.
+        reset-button-slot-category: 31 # this only applies to category gui.
+        reset-button-slot-tags: 49 # this only applies to tags gui.
+        active-tag-item: true # this applies to both category and tags gui.
+        active-tag-item-slot-category: 35 # this only applies to category gui.
+        active-tag-item-slot-tags: 53 # this only applies to tags gui.
+        back-button: true # this applies to both category and tags gui.
+        back-button-slot-category: 27 # this only applies to category gui.
+        back-button-slot-tags: 45 # this only applies to tags gui.
+        close-button: true # this applies to both category and tags gui. NOTE: this value must be set to the same as back-button if using close-button-swap
+        close-button-slot-category: 27 # this only applies to category gui. NOTE: this value must be set to the same as back-button-slot-category if using close-button-swap
+        close-button-slot-tags: 45 # this only applies to tags gui. NOTE: this value must be set to the same as back-button-slot-categoryn if using close-button-swap

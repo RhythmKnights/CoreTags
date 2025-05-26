@@ -1,0 +1,2809 @@
+settings:
+  system:
+    empty-tag:
+      name: '&7None'
+    status:
+      active: '&6Active'
+      unlocked: '&2Unlocked'
+      locked: '&cLocked'
+      protected: '&dProtected'
+    favorite:
+      icon:
+        enabled: true
+        name: '                                        &f✭'
+      msg:
+        add: '&6[Add to favorites]'
+        remove: '&6[Remove from favorites]'
+      state:
+        enabled: '&2Favorited'
+        disabled: '&cNot Favorited'
+  tags:
+    test: # the name the plugin identifies the tag as
+      name: '&6Test' # name displayed when the tag item is hovered in the GUI
+      display: '&6[Test]' # actual displayed tag that appears in the players placeholder for %coretag%
+      material: NAME_TAG # the item material shown for the tag in the GUI
+      material-modifier: -1
+      permission: coretags.tag.test
+      category: coretags.category.default # will be listed under this category in filtered views
+      description: 
+        - '&7This is a test tag' # used in lore and msgs under the {description} parameter
+        - ''
+      cost: 0 # this is only implemented when 'cost-system' is set to true. used in lore and msgs under the {cost} parameter. set the value to 0 or -1 for it to be free.
+
+    cosmicstar:
+      name: '&6Cosmic Star'
+      display: '&f✭'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cosmicstar
+      category: coretags.category.special
+      color: MULTI
+      description:
+        - '&7Fated star that unites the cosmic leylines'
+        - ''
+      cost: 0
+
+    legacy:
+      name: '&7Legacy'
+      display: '&f⊛'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.legacy
+      category: coretags.category.prize
+      description:
+        - '&7Mysterious glyph from a former era'
+        - ''
+      cost: 0
+
+    star-yellow:
+      name: '&7Star Yellow'
+      display: '&e★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.yellowstar
+      category: coretags.category.default
+      color: YELLOW
+      description:
+        - '&7A yellow star'
+        - ''
+      cost: 100
+
+    star-white:
+      name: '&7Star White'
+      display: '&f★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whitestar
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white star'
+        - ''
+      cost: 100
+
+    star-gray:
+      name: '&7Star Gray'
+      display: '&7★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.graystar
+      category: coretags.category.default
+      description:
+        - '&7A gray star'
+        - ''
+      cost: 100
+
+    star-darkgray:
+      name: '&7Star Darkgray'
+      display: '&8★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgraystar
+      category: coretags.category.default
+      description:
+        - '&7A dark gray star'
+        - ''
+      cost: 100
+
+    star-red:
+      name: '&7Star Red'
+      display: '&c★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redstar
+      category: coretags.category.default
+      description:
+        - '&7A red star'
+        - ''
+      cost: 100
+
+    star-darkred:
+      name: '&7Star Darkred'
+      display: '&4★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredstar
+      category: coretags.category.default
+      description:
+        - '&7A dark red star'
+        - ''
+      cost: 100
+
+    star-green:
+      name: '&7Star Green'
+      display: '&a★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greenstar
+      category: coretags.category.default
+      description:
+        - '&7A green star'
+        - ''
+      cost: 100
+
+    star-darkgreen:
+      name: '&7Star Darkgreen'
+      display: '&2★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreenstar
+      category: coretags.category.default
+      description:
+        - '&7A dark green star'
+        - ''
+      cost: 100
+
+    star-blue:
+      name: '&7Star Blue'
+      display: '&1★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.bluestar
+      category: coretags.category.default
+      description:
+        - '&7A blue star'
+        - ''
+      cost: 100
+
+    star-lightblue:
+      name: '&7Star Lightblue'
+      display: '&9★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightbluestar
+      category: coretags.category.default
+      description:
+        - '&7A light blue star'
+        - ''
+      cost: 100
+
+    star-cyan:
+      name: '&7Star Cyan'
+      display: '&3★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyanstar
+      category: coretags.category.default
+      description:
+        - '&7A cyan star'
+        - ''
+      cost: 100
+
+    star-aqua:
+      name: '&7Star Aqua'
+      display: '&b★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquastar
+      category: coretags.category.default
+      description:
+        - '&7An aqua star'
+        - ''
+      cost: 100
+
+    star-purple:
+      name: '&7Star Purple'
+      display: '&5★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purplestar
+      category: coretags.category.default
+      description:
+        - '&7A purple star'
+        - ''
+      cost: 100
+
+    star-pink:
+      name: '&7Star Pink'
+      display: '&d★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinkstar
+      category: coretags.category.default
+      description:
+        - '&7A pink star'
+        - ''
+      cost: 100
+
+    star-orange:
+      name: '&7Star Orange'
+      display: '&6★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangestar
+      category: coretags.category.default
+      description:
+        - '&7An orange star'
+        - ''
+      cost: 100
+
+    star-gold:
+      name: '&7Star Gold'
+      display: '&6★'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldstar
+      category: coretags.category.default
+      description:
+        - '&7A gold star'
+        - ''
+      cost: 100
+
+    heart-yellow:
+      name: '&7Heart Yellow'
+      display: '&e♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.yellowheart
+      category: coretags.category.default
+      color: YELLOW
+      description:
+        - '&7A yellow heart'
+        - ''
+      cost: 100
+
+    heart-white:
+      name: '&7Heart White'
+      display: '&f♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whiteheart
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white heart'
+        - ''
+      cost: 100
+
+    heart-gray:
+      name: '&7Heart Gray'
+      display: '&7♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.grayheart
+      category: coretags.category.default
+      description:
+        - '&7A gray heart'
+        - ''
+      cost: 100
+
+    heart-darkgray:
+      name: '&7Heart Darkgray'
+      display: '&8♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgrayheart
+      category: coretags.category.default
+      description:
+        - '&7A dark gray heart'
+        - ''
+      cost: 100
+
+    heart-red:
+      name: '&7Heart Red'
+      display: '&c♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redheart
+      category: coretags.category.default
+      description:
+        - '&7A red heart'
+        - ''
+      cost: 100
+
+    heart-darkred:
+      name: '&7Heart Darkred'
+      display: '&4♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredheart
+      category: coretags.category.default
+      description:
+        - '&7A dark red heart'
+        - ''
+      cost: 100
+
+    heart-green:
+      name: '&7Heart Green'
+      display: '&a♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greenheart
+      category: coretags.category.default
+      description:
+        - '&7A green heart'
+        - ''
+      cost: 100
+
+    heart-darkgreen:
+      name: '&7Heart Darkgreen'
+      display: '&2♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreenheart
+      category: coretags.category.default
+      description:
+        - '&7A dark green heart'
+        - ''
+      cost: 100
+
+    heart-blue:
+      name: '&7Heart Blue'
+      display: '&1♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.blueheart
+      category: coretags.category.default
+      description:
+        - '&7A blue heart'
+        - ''
+      cost: 100
+
+    heart-lightblue:
+      name: '&7Heart Lightblue'
+      display: '&9♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightblueheart
+      category: coretags.category.default
+      description:
+        - '&7A light blue heart'
+        - ''
+      cost: 100
+
+    heart-cyan:
+      name: '&7Heart Cyan'
+      display: '&3♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyanheart
+      category: coretags.category.default
+      description:
+        - '&7A cyan heart'
+        - ''
+      cost: 100
+
+    heart-aqua:
+      name: '&7Heart Aqua'
+      display: '&b♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquaheart
+      category: coretags.category.default
+      description:
+        - '&7An aqua heart'
+        - ''
+      cost: 100
+
+    heart-purple:
+      name: '&7Heart Purple'
+      display: '&5♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purpleheart
+      category: coretags.category.default
+      description:
+        - '&7A purple heart'
+        - ''
+      cost: 100
+
+    heart-pink:
+      name: '&7Heart Pink'
+      display: '&d♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinkheart
+      category: coretags.category.default
+      description:
+        - '&7A pink heart'
+        - ''
+      cost: 100
+
+    heart-orange:
+      name: '&7Heart Orange'
+      display: '&6♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangeheart
+      category: coretags.category.default
+      description:
+        - '&7An orange heart'
+        - ''
+      cost: 100
+
+    heart-gold:
+      name: '&7Heart Gold'
+      display: '&6♥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldheart
+      category: coretags.category.default
+      description:
+        - '&7A gold heart'
+        - ''
+      cost: 100
+
+    skull-white:
+      name: '&7Skull White'
+      display: '&f☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whiteskull
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white skull'
+        - ''
+      cost: 100
+
+    skull-gray:
+      name: '&7Skull Gray'
+      display: '&7☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.grayskull
+      category: coretags.category.default
+      description:
+        - '&7A gray skull'
+        - ''
+      cost: 100
+
+    skull-darkgray:
+      name: '&7Skull Darkgray'
+      display: '&8☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgrayskull
+      category: coretags.category.default
+      description:
+        - '&7A dark gray skull'
+        - ''
+      cost: 100
+
+    skull-red:
+      name: '&7Skull Red'
+      display: '&c☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redskull
+      category: coretags.category.default
+      description:
+        - '&7A red skull'
+        - ''
+      cost: 100
+
+    skull-darkred:
+      name: '&7Skull Darkred'
+      display: '&4☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredskull
+      category: coretags.category.default
+      description:
+        - '&7A dark red skull'
+        - ''
+      cost: 100
+
+    skull-green:
+      name: '&7Skull Green'
+      display: '&a☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greenskull
+      category: coretags.category.default
+      description:
+        - '&7A green skull'
+        - ''
+      cost: 100
+
+    skull-darkgreen:
+      name: '&7Skull Darkgreen'
+      display: '&2☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreenskull
+      category: coretags.category.default
+      description:
+        - '&7A dark green skull'
+        - ''
+      cost: 100
+
+    skull-blue:
+      name: '&7Skull Blue'
+      display: '&1☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.blueskull
+      category: coretags.category.default
+      description:
+        - '&7A blue skull'
+        - ''
+      cost: 100
+
+    skull-lightblue:
+      name: '&7Skull Lightblue'
+      display: '&9☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightblueskull
+      category: coretags.category.default
+      description:
+        - '&7A light blue skull'
+        - ''
+      cost: 100
+
+    skull-cyan:
+      name: '&7Skull Cyan'
+      display: '&3☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyanskull
+      category: coretags.category.default
+      description:
+        - '&7A cyan skull'
+        - ''
+      cost: 100
+
+    skull-aqua:
+      name: '&7Skull Aqua'
+      display: '&b☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquaskull
+      category: coretags.category.default
+      description:
+        - '&7An aqua skull'
+        - ''
+      cost: 100
+
+    skull-purple:
+      name: '&7Skull Purple'
+      display: '&5☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purpleskull
+      category: coretags.category.default
+      description:
+        - '&7A purple skull'
+        - ''
+      cost: 100
+
+    skull-pink:
+      name: '&7Skull Pink'
+      display: '&d☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinkskull
+      category: coretags.category.default
+      description:
+        - '&7A pink skull'
+        - ''
+      cost: 100
+
+    skull-orange:
+      name: '&7Skull Orange'
+      display: '&6☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangeskull
+      category: coretags.category.default
+      description:
+        - '&7An orange skull'
+        - ''
+      cost: 100
+
+    skull-gold:
+      name: '&7Skull Gold'
+      display: '&6☠'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldskull
+      category: coretags.category.default
+      description:
+        - '&7A gold skull'
+        - ''
+      cost: 100
+
+    comet-white:
+      name: '&7Comet White'
+      display: '&f☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whitecomet
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white comet'
+        - ''
+      cost: 100
+
+    comet-gray:
+      name: '&7Comet Gray'
+      display: '&7☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.graycomet
+      category: coretags.category.default
+      description:
+        - '&7A gray comet'
+        - ''
+      cost: 100
+
+    comet-darkgray:
+      name: '&7Comet Darkgray'
+      display: '&8☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgraycomet
+      category: coretags.category.default
+      description:
+        - '&7A dark gray comet'
+        - ''
+      cost: 100
+
+    comet-red:
+      name: '&7Comet Red'
+      display: '&c☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redcomet
+      category: coretags.category.default
+      description:
+        - '&7A red comet'
+        - ''
+      cost: 100
+
+    comet-darkred:
+      name: '&7Comet Darkred'
+      display: '&4☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredcomet
+      category: coretags.category.default
+      description:
+        - '&7A dark red comet'
+        - ''
+      cost: 100
+
+    comet-green:
+      name: '&7Comet Green'
+      display: '&a☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greencomet
+      category: coretags.category.default
+      description:
+        - '&7A green comet'
+        - ''
+      cost: 100
+
+    comet-darkgreen:
+      name: '&7Comet Darkgreen'
+      display: '&2☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreencomet
+      category: coretags.category.default
+      description:
+        - '&7A dark green comet'
+        - ''
+      cost: 100
+
+    comet-blue:
+      name: '&7Comet Blue'
+      display: '&1☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.bluecomet
+      category: coretags.category.default
+      description:
+        - '&7A blue comet'
+        - ''
+      cost: 100
+
+    comet-lightblue:
+      name: '&7Comet Lightblue'
+      display: '&9☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightbluecomet
+      category: coretags.category.default
+      description:
+        - '&7A light blue comet'
+        - ''
+      cost: 100
+
+    comet-cyan:
+      name: '&7Comet Cyan'
+      display: '&3☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyancomet
+      category: coretags.category.default
+      description:
+        - '&7A cyan comet'
+        - ''
+      cost: 100
+
+    comet-aqua:
+      name: '&7Comet Aqua'
+      display: '&b☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquacomet
+      category: coretags.category.default
+      description:
+        - '&7An aqua comet'
+        - ''
+      cost: 100
+
+    comet-purple:
+      name: '&7Comet Purple'
+      display: '&5☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purplecomet
+      category: coretags.category.default
+      description:
+        - '&7A purple comet'
+        - ''
+      cost: 100
+
+    comet-pink:
+      name: '&7Comet Pink'
+      display: '&d☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinkcomet
+      category: coretags.category.default
+      description:
+        - '&7A pink comet'
+        - ''
+      cost: 100
+
+    comet-orange:
+      name: '&7Comet Orange'
+      display: '&6☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangecomet
+      category: coretags.category.default
+      description:
+        - '&7An orange comet'
+        - ''
+      cost: 100
+
+    comet-gold:
+      name: '&7Comet Gold'
+      display: '&6☄'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldcomet
+      category: coretags.category.default
+      description:
+        - '&7A gold comet'
+        - ''
+      cost: 100
+
+    flame-white:
+      name: '&7Flame White'
+      display: '&f🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whiteflame
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white flame'
+        - ''
+      cost: 100
+
+    flame-gray:
+      name: '&7Flame Gray'
+      display: '&7🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.grayflame
+      category: coretags.category.default
+      description:
+        - '&7A gray flame'
+        - ''
+      cost: 100
+
+    flame-darkgray:
+      name: '&7Flame Darkgray'
+      display: '&8🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgrayflame
+      category: coretags.category.default
+      description:
+        - '&7A dark gray flame'
+        - ''
+      cost: 100
+
+    flame-red:
+      name: '&7Flame Red'
+      display: '&c🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redflame
+      category: coretags.category.default
+      description:
+        - '&7A red flame'
+        - ''
+      cost: 100
+
+    flame-darkred:
+      name: '&7Flame Darkred'
+      display: '&4🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredflame
+      category: coretags.category.default
+      description:
+        - '&7A dark red flame'
+        - ''
+      cost: 100
+
+    flame-green:
+      name: '&7Flame Green'
+      display: '&a🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greenflame
+      category: coretags.category.default
+      description:
+        - '&7A green flame'
+        - ''
+      cost: 100
+
+    flame-darkgreen:
+      name: '&7Flame Darkgreen'
+      display: '&2🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreenflame
+      category: coretags.category.default
+      description:
+        - '&7A dark green flame'
+        - ''
+      cost: 100
+
+    flame-blue:
+      name: '&7Flame Blue'
+      display: '&1🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.blueflame
+      category: coretags.category.default
+      description:
+        - '&7A blue flame'
+        - ''
+      cost: 100
+
+    flame-lightblue:
+      name: '&7Flame Lightblue'
+      display: '&9🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightblueflame
+      category: coretags.category.default
+      description:
+        - '&7A light blue flame'
+        - ''
+      cost: 100
+
+    flame-cyan:
+      name: '&7Flame Cyan'
+      display: '&3🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyanflame
+      category: coretags.category.default
+      description:
+        - '&7A cyan flame'
+        - ''
+      cost: 100
+
+    flame-aqua:
+      name: '&7Flame Aqua'
+      display: '&b🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquaflame
+      category: coretags.category.default
+      description:
+        - '&7An aqua flame'
+        - ''
+      cost: 100
+
+    flame-purple:
+      name: '&7Flame Purple'
+      display: '&5🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purpleflame
+      category: coretags.category.default
+      description:
+        - '&7A purple flame'
+        - ''
+      cost: 100
+
+    flame-pink:
+      name: '&7Flame Pink'
+      display: '&d🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinkflame
+      category: coretags.category.default
+      description:
+        - '&7A pink flame'
+        - ''
+      cost: 100
+
+    flame-orange:
+      name: '&7Flame Orange'
+      display: '&6🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangeflame
+      category: coretags.category.default
+      description:
+        - '&7An orange flame'
+        - ''
+      cost: 100
+
+    flame-gold:
+      name: '&7Flame Gold'
+      display: '&6🔥'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldflame
+      category: coretags.category.default
+      description:
+        - '&7A gold flame'
+        - ''
+      cost: 100
+
+    musicnote-white:
+      name: '&7Musicnote White'
+      display: '&f♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whitemusicnote
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white music note'
+        - ''
+      cost: 100
+
+    musicnote-gray:
+      name: '&7Musicnote Gray'
+      display: '&7♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.graymusicnote
+      category: coretags.category.default
+      description:
+        - '&7A gray music note'
+        - ''
+      cost: 100
+
+    musicnote-darkgray:
+      name: '&7Musicnote Darkgray'
+      display: '&8♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgraymusicnote
+      category: coretags.category.default
+      description:
+        - '&7A dark gray music note'
+        - ''
+      cost: 100
+
+    musicnote-red:
+      name: '&7Musicnote Red'
+      display: '&c♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redmusicnote
+      category: coretags.category.default
+      description:
+        - '&7A red music note'
+        - ''
+      cost: 100
+
+    musicnote-darkred:
+      name: '&7Musicnote Darkred'
+      display: '&4♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredmusicnote
+      category: coretags.category.default
+      description:
+        - '&7A dark red music note'
+        - ''
+      cost: 100
+
+    musicnote-green:
+      name: '&7Musicnote Green'
+      display: '&a♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greenmusicnote
+      category: coretags.category.default
+      description:
+        - '&7A green music note'
+        - ''
+      cost: 100
+
+    musicnote-darkgreen:
+      name: '&7Musicnote Darkgreen'
+      display: '&2♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreenmusicnote
+      category: coretags.category.default
+      description:
+        - '&7A dark green music note'
+        - ''
+      cost: 100
+
+    musicnote-blue:
+      name: '&7Musicnote Blue'
+      display: '&1♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.bluemusicnote
+      category: coretags.category.default
+      description:
+        - '&7A blue music note'
+        - ''
+      cost: 100
+
+    musicnote-lightblue:
+      name: '&7Musicnote Lightblue'
+      display: '&9♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightbluemusicnote
+      category: coretags.category.default
+      description:
+        - '&7A light blue music note'
+        - ''
+      cost: 100
+
+    musicnote-cyan:
+      name: '&7Musicnote Cyan'
+      display: '&3♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyanmusicnote
+      category: coretags.category.default
+      description:
+        - '&7A cyan music note'
+        - ''
+      cost: 100
+
+    musicnote-aqua:
+      name: '&7Musicnote Aqua'
+      display: '&b♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquamusicnote
+      category: coretags.category.default
+      description:
+        - '&7An aqua music note'
+        - ''
+      cost: 100
+
+    musicnote-purple:
+      name: '&7Musicnote Purple'
+      display: '&5♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purplemusicnote
+      category: coretags.category.default
+      description:
+        - '&7A purple music note'
+        - ''
+      cost: 100
+
+    musicnote-pink:
+      name: '&7Musicnote Pink'
+      display: '&d♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinkmusicnote
+      category: coretags.category.default
+      description:
+        - '&7A pink music note'
+        - ''
+      cost: 100
+
+    musicnote-orange:
+      name: '&7Musicnote Orange'
+      display: '&6♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangemusicnote
+      category: coretags.category.default
+      description:
+        - '&7An orange music note'
+        - ''
+      cost: 100
+
+    musicnote-gold:
+      name: '&7Musicnote Gold'
+      display: '&6♫'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldmusicnote
+      category: coretags.category.default
+      description:
+        - '&7A gold music note'
+        - ''
+      cost: 100
+
+    blade-white:
+      name: '&7Blade White'
+      display: '&f🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whiteblade
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white blade'
+        - ''
+      cost: 100
+
+    blade-gray:
+      name: '&7Blade Gray'
+      display: '&7🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.grayblade
+      category: coretags.category.default
+      description:
+        - '&7A gray blade'
+        - ''
+      cost: 100
+
+    blade-darkgray:
+      name: '&7Blade Darkgray'
+      display: '&8🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgrayblade
+      category: coretags.category.default
+      description:
+        - '&7A dark gray blade'
+        - ''
+      cost: 100
+
+    blade-red:
+      name: '&7Blade Red'
+      display: '&c🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redblade
+      category: coretags.category.default
+      description:
+        - '&7A red blade'
+        - ''
+      cost: 100
+
+    blade-darkred:
+      name: '&7Blade Darkred'
+      display: '&4🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredblade
+      category: coretags.category.default
+      description:
+        - '&7A dark red blade'
+        - ''
+      cost: 100
+
+    blade-green:
+      name: '&7Blade Green'
+      display: '&a🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greenblade
+      category: coretags.category.default
+      description:
+        - '&7A green blade'
+        - ''
+      cost: 100
+
+    blade-darkgreen:
+      name: '&7Blade Darkgreen'
+      display: '&2🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreenblade
+      category: coretags.category.default
+      description:
+        - '&7A dark green blade'
+        - ''
+      cost: 100
+
+    blade-blue:
+      name: '&7Blade Blue'
+      display: '&1🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.blueblade
+      category: coretags.category.default
+      description:
+        - '&7A blue blade'
+        - ''
+      cost: 100
+
+    blade-lightblue:
+      name: '&7Blade Lightblue'
+      display: '&9🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightblueblade
+      category: coretags.category.default
+      description:
+        - '&7A light blue blade'
+        - ''
+      cost: 100
+
+    blade-cyan:
+      name: '&7Blade Cyan'
+      display: '&3🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyanblade
+      category: coretags.category.default
+      description:
+        - '&7A cyan blade'
+        - ''
+      cost: 100
+
+    blade-aqua:
+      name: '&7Blade Aqua'
+      display: '&b🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquablade
+      category: coretags.category.default
+      description:
+        - '&7An aqua blade'
+        - ''
+      cost: 100
+
+    blade-purple:
+      name: '&7Blade Purple'
+      display: '&5🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purpleblade
+      category: coretags.category.default
+      description:
+        - '&7A purple blade'
+        - ''
+      cost: 100
+
+    blade-pink:
+      name: '&7Blade Pink'
+      display: '&d🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinkblade
+      category: coretags.category.default
+      description:
+        - '&7A pink blade'
+        - ''
+      cost: 100
+
+    blade-orange:
+      name: '&7Blade Orange'
+      display: '&6🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangeblade
+      category: coretags.category.default
+      description:
+        - '&7An orange blade'
+        - ''
+      cost: 100
+
+    blade-gold:
+      name: '&7Blade Gold'
+      display: '&6🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldblade
+      category: coretags.category.default
+      description:
+        - '&7A gold blade'
+        - ''
+      cost: 100
+
+    sword-white:
+      name: '&7Sword White'
+      display: '&f🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whitesword
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white sword'
+        - ''
+      cost: 100
+
+    sword-gray:
+      name: '&7Sword Gray'
+      display: '&7🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.graysword
+      category: coretags.category.default
+      description:
+        - '&7A gray sword'
+        - ''
+      cost: 100
+
+    sword-darkgray:
+      name: '&7Sword Darkgray'
+      display: '&8🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgraysword
+      category: coretags.category.default
+      description:
+        - '&7A dark gray sword'
+        - ''
+      cost: 100
+
+    sword-red:
+      name: '&7Sword Red'
+      display: '&c🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redsword
+      category: coretags.category.default
+      description:
+        - '&7A red sword'
+        - ''
+      cost: 100
+
+    sword-darkred:
+      name: '&7Sword Darkred'
+      display: '&4🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredsword
+      category: coretags.category.default
+      description:
+        - '&7A dark red sword'
+        - ''
+      cost: 100
+
+    sword-green:
+      name: '&7Sword Green'
+      display: '&a🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greensword
+      category: coretags.category.default
+      description:
+        - '&7A green sword'
+        - ''
+      cost: 100
+
+    sword-darkgreen:
+      name: '&7Sword Darkgreen'
+      display: '&2🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreensword
+      category: coretags.category.default
+      description:
+        - '&7A dark green sword'
+        - ''
+      cost: 100
+
+    sword-blue:
+      name: '&7Sword Blue'
+      display: '&1🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.bluesword
+      category: coretags.category.default
+      description:
+        - '&7A blue sword'
+        - ''
+      cost: 100
+
+    sword-lightblue:
+      name: '&7Sword Lightblue'
+      display: '&9🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightbluesword
+      category: coretags.category.default
+      description:
+        - '&7A light blue sword'
+        - ''
+      cost: 100
+
+    sword-cyan:
+      name: '&7Sword Cyan'
+      display: '&3🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyansword
+      category: coretags.category.default
+      description:
+        - '&7A cyan sword'
+        - ''
+      cost: 100
+
+    sword-aqua:
+      name: '&7Sword Aqua'
+      display: '&b🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquasword
+      category: coretags.category.default
+      description:
+        - '&7An aqua sword'
+        - ''
+      cost: 100
+
+    sword-purple:
+      name: '&7Sword Purple'
+      display: '&5🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purplesword
+      category: coretags.category.default
+      description:
+        - '&7A purple sword'
+        - ''
+      cost: 100
+
+    sword-pink:
+      name: '&7Sword Pink'
+      display: '&d🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinksword
+      category: coretags.category.default
+      description:
+        - '&7A pink sword'
+        - ''
+      cost: 100
+
+    sword-orange:
+      name: '&7Sword Orange'
+      display: '&6🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangesword
+      category: coretags.category.default
+      description:
+        - '&7An orange sword'
+        - ''
+      cost: 100
+
+    sword-gold:
+      name: '&7Sword Gold'
+      display: '&6🗡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldsword
+      category: coretags.category.default
+      description:
+        - '&7A gold sword'
+        - ''
+      cost: 100
+
+    pickaxe-white:
+      name: '&7Pickaxe White'
+      display: '&f⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whitepickaxe
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-gray:
+      name: '&7Pickaxe Gray'
+      display: '&7⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.graypickaxe
+      category: coretags.category.default
+      description:
+        - '&7A gray pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-darkgray:
+      name: '&7Pickaxe Darkgray'
+      display: '&8⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgraypickaxe
+      category: coretags.category.default
+      description:
+        - '&7A dark gray pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-red:
+      name: '&7Pickaxe Red'
+      display: '&c⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redpickaxe
+      category: coretags.category.default
+      description:
+        - '&7A red pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-darkred:
+      name: '&7Pickaxe Darkred'
+      display: '&4⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredpickaxe
+      category: coretags.category.default
+      description:
+        - '&7A dark red pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-green:
+      name: '&7Pickaxe Green'
+      display: '&a⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greenpickaxe
+      category: coretags.category.default
+      description:
+        - '&7A green pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-darkgreen:
+      name: '&7Pickaxe Darkgreen'
+      display: '&2⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreenpickaxe
+      category: coretags.category.default
+      description:
+        - '&7A dark green pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-blue:
+      name: '&7Pickaxe Blue'
+      display: '&1⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.bluepickaxe
+      category: coretags.category.default
+      description:
+        - '&7A blue pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-lightblue:
+      name: '&7Pickaxe Lightblue'
+      display: '&9⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightbluepickaxe
+      category: coretags.category.default
+      description:
+        - '&7A light blue pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-cyan:
+      name: '&7Pickaxe Cyan'
+      display: '&3⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyanpickaxe
+      category: coretags.category.default
+      description:
+        - '&7A cyan pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-aqua:
+      name: '&7Pickaxe Aqua'
+      display: '&b⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquapickaxe
+      category: coretags.category.default
+      description:
+        - '&7An aqua pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-purple:
+      name: '&7Pickaxe Purple'
+      display: '&5⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purplepickaxe
+      category: coretags.category.default
+      description:
+        - '&7A purple pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-pink:
+      name: '&7Pickaxe Pink'
+      display: '&d⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinkpickaxe
+      category: coretags.category.default
+      description:
+        - '&7A pink pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-orange:
+      name: '&7Pickaxe Orange'
+      display: '&6⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangepickaxe
+      category: coretags.category.default
+      description:
+        - '&7An orange pickaxe'
+        - ''
+      cost: 100
+
+    pickaxe-gold:
+      name: '&7Pickaxe Gold'
+      display: '&6⛏'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldpickaxe
+      category: coretags.category.default
+      description:
+        - '&7A gold pickaxe'
+        - ''
+      cost: 100
+
+    axe-white:
+      name: '&7Axe White'
+      display: '&f🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whiteaxe
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white axe'
+        - ''
+      cost: 100
+
+    axe-gray:
+      name: '&7Axe Gray'
+      display: '&7🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.grayaxe
+      category: coretags.category.default
+      description:
+        - '&7A gray axe'
+        - ''
+      cost: 100
+
+    axe-darkgray:
+      name: '&7Axe Darkgray'
+      display: '&8🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgrayaxe
+      category: coretags.category.default
+      description:
+        - '&7A dark gray axe'
+        - ''
+      cost: 100
+
+    axe-red:
+      name: '&7Axe Red'
+      display: '&c🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redaxe
+      category: coretags.category.default
+      description:
+        - '&7A red axe'
+        - ''
+      cost: 100
+
+    axe-darkred:
+      name: '&7Axe Darkred'
+      display: '&4🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredaxe
+      category: coretags.category.default
+      description:
+        - '&7A dark red axe'
+        - ''
+      cost: 100
+
+    axe-green:
+      name: '&7Axe Green'
+      display: '&a🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greenaxe
+      category: coretags.category.default
+      description:
+        - '&7A green axe'
+        - ''
+      cost: 100
+
+    axe-darkgreen:
+      name: '&7Axe Darkgreen'
+      display: '&2🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreenaxe
+      category: coretags.category.default
+      description:
+        - '&7A dark green axe'
+        - ''
+      cost: 100
+
+    axe-blue:
+      name: '&7Axe Blue'
+      display: '&1🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.blueaxe
+      category: coretags.category.default
+      description:
+        - '&7A blue axe'
+        - ''
+      cost: 100
+
+    axe-lightblue:
+      name: '&7Axe Lightblue'
+      display: '&9🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightblueaxe
+      category: coretags.category.default
+      description:
+        - '&7A light blue axe'
+        - ''
+      cost: 100
+
+    axe-cyan:
+      name: '&7Axe Cyan'
+      display: '&3🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyanaxe
+      category: coretags.category.default
+      description:
+        - '&7A cyan axe'
+        - ''
+      cost: 100
+
+    axe-aqua:
+      name: '&7Axe Aqua   '
+      display: '&b🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquaaxe
+      category: coretags.category.default
+      description:
+        - '&7An aqua axe'
+        - ''
+      cost: 100
+
+    axe-purple:
+      name: '&7Axe Purple'
+      display: '&5🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purpleaxe
+      category: coretags.category.default
+      description:
+        - '&7A purple axe'
+        - ''
+      cost: 100
+
+    axe-pink:
+      name: '&7Axe Pink'
+      display: '&d🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinkaxe
+      category: coretags.category.default
+      description:
+        - '&7A pink axe'
+        - ''
+      cost: 100
+
+    axe-orange:
+      name: '&7Axe Orange'
+      display: '&6🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangeaxe
+      category: coretags.category.default
+      description:
+        - '&7An orange axe'
+        - ''
+      cost: 100
+
+    axe-gold:
+      name: '&7Axe Gold'
+      display: '&6🪓'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldaxe
+      category: coretags.category.default
+      description:
+        - '&7A gold axe'
+        - ''
+      cost: 100
+
+    trident-white:
+      name: '&7Trident White'
+      display: '&f🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whitetrident
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white trident'
+        - ''
+      cost: 100
+
+    trident-gray:
+      name: '&7Trident Gray'
+      display: '&7🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.graytrident
+      category: coretags.category.default
+      description:
+        - '&7A gray trident'
+        - ''
+      cost: 100
+
+    trident-darkgray:
+      name: '&7Trident Darkgray'
+      display: '&8🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgraytrident
+      category: coretags.category.default
+      description:
+        - '&7A dark gray trident'
+        - ''
+      cost: 100
+
+    trident-red:
+      name: '&7Trident Red'
+      display: '&c🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redtrident
+      category: coretags.category.default
+      description:
+        - '&7A red trident'
+        - ''
+      cost: 100
+
+    trident-darkred:
+      name: '&7Trident Darkred'
+      display: '&4🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredtrident
+      category: coretags.category.default
+      description:
+        - '&7A dark red trident'
+        - ''
+      cost: 100
+
+    trident-green:
+      name: '&7Trident Green'
+      display: '&a🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greentrident
+      category: coretags.category.default
+      description:
+        - '&7A green trident'
+        - ''
+      cost: 100
+
+    trident-darkgreen:
+      name: '&7Trident Darkgreen'
+      display: '&2🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreentrident
+      category: coretags.category.default
+      description:
+        - '&7A dark green trident'
+        - ''
+      cost: 100
+
+    trident-blue:
+      name: '&7Trident Blue'
+      display: '&1🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.bluetrident
+      category: coretags.category.default
+      description:
+        - '&7A blue trident'
+        - ''
+      cost: 100
+
+    trident-lightblue:
+      name: '&7Trident Lightblue'
+      display: '&9🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightbluetrident
+      category: coretags.category.default
+      description:
+        - '&7A light blue trident'
+        - ''
+      cost: 100
+
+    trident-cyan:
+      name: '&7Trident Cyan'
+      display: '&3🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyantrident
+      category: coretags.category.default
+      description:
+        - '&7A cyan trident'
+        - ''
+      cost: 100
+
+    trident-aqua:
+      name: '&7Trident Aqua'
+      display: '&b🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquatrident
+      category: coretags.category.default
+      description:
+        - '&7An aqua trident'
+        - ''
+      cost: 100
+
+    trident-purple:
+      name: '&7Trident Purple'
+      display: '&5🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purpletrident
+      category: coretags.category.default
+      description:
+        - '&7A purple trident'
+        - ''
+      cost: 100
+
+    trident-pink:
+      name: '&7Trident Pink'
+      display: '&d🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinktrident
+      category: coretags.category.default
+      description:
+        - '&7A pink trident'
+        - ''
+      cost: 100
+
+    trident-orange:
+      name: '&7Trident Orange'
+      display: '&6🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangetrident
+      category: coretags.category.default
+      description:
+        - '&7An orange trident'
+        - ''
+      cost: 100
+
+    trident-gold:
+      name: '&7Trident Gold'
+      display: '&6🔱'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldtrident
+      category: coretags.category.default
+      description:
+        - '&7A gold trident'
+        - ''
+      cost: 100
+
+    shield-white:
+      name: '&7Shield White'
+      display: '&f🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whiteshield
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white shield'
+        - ''
+      cost: 100
+
+    shield-gray:
+      name: '&7Shield Gray'
+      display: '&7🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.grayshield
+      category: coretags.category.default
+      description:
+        - '&7A gray shield'
+        - ''
+      cost: 100
+
+    shield-darkgray:
+      name: '&7Shield Darkgray'
+      display: '&8🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgrayshield
+      category: coretags.category.default
+      description:
+        - '&7A dark gray shield'
+        - ''
+      cost: 100
+
+    shield-red:
+      name: '&7Shield Red'
+      display: '&c🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redshield
+      category: coretags.category.default
+      description:
+        - '&7A red shield'
+        - ''
+      cost: 100
+
+    shield-darkred:
+      name: '&7Shield Darkred'
+      display: '&4🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredshield
+      category: coretags.category.default
+      description:
+        - '&7A dark red shield'
+        - ''
+      cost: 100
+
+    shield-green:
+      name: '&7Shield Green'
+      display: '&a🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greenshield
+      category: coretags.category.default
+      description:
+        - '&7A green shield'
+        - ''
+      cost: 100
+
+    shield-darkgreen:
+      name: '&7Shield Darkgreen'
+      display: '&2🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreenshield
+      category: coretags.category.default
+      description:
+        - '&7A dark green shield'
+        - ''
+      cost: 100
+
+    shield-blue:
+      name: '&7Shield Blue'
+      display: '&1🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.blueshield
+      category: coretags.category.default
+      description:
+        - '&7A blue shield'
+        - ''
+      cost: 100
+
+    shield-lightblue:
+      name: '&7Shield Lightblue'
+      display: '&9🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightblueshield
+      category: coretags.category.default
+      description:
+        - '&7A light blue shield'
+        - ''
+      cost: 100
+
+    shield-cyan:
+      name: '&7Shield Cyan'
+      display: '&3🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyanshield
+      category: coretags.category.default
+      description:
+        - '&7A cyan shield'
+        - ''
+      cost: 100
+
+    shield-aqua:
+      name: '&7Shield Aqua'
+      display: '&b🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquashield
+      category: coretags.category.default
+      description:
+        - '&7An aqua shield'
+        - ''
+      cost: 100
+
+    shield-purple:
+      name: '&7Shield Purple'
+      display: '&5🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purpleshield
+      category: coretags.category.default
+      description:
+        - '&7A purple shield'
+        - ''
+      cost: 100
+
+    shield-pink:
+      name: '&7Shield Pink'
+      display: '&d🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinkshield
+      category: coretags.category.default
+      description:
+        - '&7A pink shield'
+        - ''
+      cost: 100
+
+    shield-orange:
+      name: '&7Shield Orange'
+      display: '&6🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangeshield
+      category: coretags.category.default
+      description:
+        - '&7An orange shield'
+        - ''
+      cost: 100
+
+    shield-gold:
+      name: '&7Shield Gold'
+      display: '&6🛡'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldshield
+      category: coretags.category.default
+      description:
+        - '&7A gold shield'
+        - ''
+      cost: 100
+
+    buckler-white:
+      name: '&7Buckler White'
+      display: '&f⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whitebuckler
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-gray:
+      name: '&7Buckler Gray'
+      display: '&7⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.graybuckler
+      category: coretags.category.default
+      description:
+        - '&7A gray shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-darkgray:
+      name: '&7Buckler Darkgray'
+      display: '&8⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgraybuckler
+      category: coretags.category.default
+      description:
+        - '&7A dark gray shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-red:
+      name: '&7Buckler Red'
+      display: '&c⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redbuckler
+      category: coretags.category.default
+      description:
+        - '&7A red shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-darkred:
+      name: '&7Buckler Darkred'
+      display: '&4⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredbuckler
+      category: coretags.category.default
+      description:
+        - '&7A dark red shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-green:
+      name: '&7Buckler Green'
+      display: '&a⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greenbuckler
+      category: coretags.category.default
+      description:
+        - '&7A green shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-darkgreen:
+      name: '&7Buckler Darkgreen'
+      display: '&2⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreenbuckler
+      category: coretags.category.default
+      description:
+        - '&7A dark green shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-blue:
+      name: '&7Buckler Blue'
+      display: '&1⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.bluebuckler
+      category: coretags.category.default
+      description:
+        - '&7A blue shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-lightblue:
+      name: '&7Buckler Lightblue'
+      display: '&9⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightbluebuckler
+      category: coretags.category.default
+      description:
+        - '&7A light blue shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-cyan:
+      name: '&7Buckler Cyan'
+      display: '&3⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyanbuckler
+      category: coretags.category.default
+      description:
+        - '&7A cyan shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-aqua:
+      name: '&7Buckler Aqua'
+      display: '&b⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquabuckler
+      category: coretags.category.default
+      description:
+        - '&7An aqua shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-purple:
+      name: '&7Buckler Purple'
+      display: '&5⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purplebuckler
+      category: coretags.category.default
+      description:
+        - '&7A purple shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-pink:
+      name: '&7Buckler Pink'
+      display: '&d⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinkbuckler
+      category: coretags.category.default
+      description:
+        - '&7A pink shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-orange:
+      name: '&7Buckler Orange'
+      display: '&6⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangebuckler
+      category: coretags.category.default
+      description:
+        - '&7An orange shield with a plus symbol'
+        - ''
+      cost: 100
+
+    buckler-gold:
+      name: '&7Buckler Gold'
+      display: '&6⛨'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldbuckler
+      category: coretags.category.default
+      description:
+        - '&7A gold shield with a plus symbol'
+        - ''
+      cost: 100
+
+    potion-white:
+      name: '&7Potion White'
+      display: '&f🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whitepotion
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white potion'
+        - ''
+      cost: 100
+
+    potion-gray:
+      name: '&7Potion Gray'
+      display: '&7🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.graypotion
+      category: coretags.category.default
+      description:
+        - '&7A gray potion'
+        - ''
+      cost: 100
+
+    potion-darkgray:
+      name: '&7Potion Darkgray'
+      display: '&8🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgraypotion
+      category: coretags.category.default
+      description:
+        - '&7A dark gray potion'
+        - ''
+      cost: 100
+
+    potion-red:
+      name: '&7Potion Red'
+      display: '&c🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redpotion
+      category: coretags.category.default
+      description:
+        - '&7A red potion'
+        - ''
+      cost: 100
+
+    potion-darkred:
+      name: '&7Potion Darkred'
+      display: '&4🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredpotion
+      category: coretags.category.default
+      description:
+        - '&7A dark red potion'
+        - ''
+      cost: 100
+
+    potion-green:
+      name: '&7Potion Green'
+      display: '&a🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greenpotion
+      category: coretags.category.default
+      description:
+        - '&7A green potion'
+        - ''
+      cost: 100
+
+    potion-darkgreen:
+      name: '&7Potion Darkgreen'
+      display: '&2🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreenpotion
+      category: coretags.category.default
+      description:
+        - '&7A dark green potion'
+        - ''
+      cost: 100
+
+    potion-blue:
+      name: '&7Potion Blue'
+      display: '&1🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.bluepotion
+      category: coretags.category.default
+      description:
+        - '&7A blue potion'
+        - ''
+      cost: 100
+
+    potion-lightblue:
+      name: '&7Potion Lightblue'
+      display: '&9🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightbluepotion
+      category: coretags.category.default
+      description:
+        - '&7A light blue potion'
+        - ''
+      cost: 100
+
+    potion-cyan:
+      name: '&7Potion Cyan'
+      display: '&3🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyanpotion
+      category: coretags.category.default
+      description:
+        - '&7A cyan potion'
+        - ''
+      cost: 100
+
+    potion-aqua:
+      name: '&7Potion Aqua'
+      display: '&b🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquapotion
+      category: coretags.category.default
+      description:
+        - '&7An aqua potion'
+        - ''
+      cost: 100
+
+    potion-purple:
+      name: '&7Potion Purple'
+      display: '&5🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purplepotion
+      category: coretags.category.default
+      description:
+        - '&7A purple potion'
+        - ''
+      cost: 100
+
+    potion-pink:
+      name: '&7Potion Pink'
+      display: '&d🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinkpotion
+      category: coretags.category.default
+      description:
+        - '&7A pink potion'
+        - ''
+      cost: 100
+
+    potion-orange:
+      name: '&7Potion Orange'
+      display: '&6🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangepotion
+      category: coretags.category.default
+      description:
+        - '&7An orange potion'
+        - ''
+      cost: 100
+
+    potion-gold:
+      name: '&7Potion Gold'
+      display: '&6🧪'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldpotion
+      category: coretags.category.default
+      description:
+        - '&7A gold potion'
+        - ''
+      cost: 100
+
+    fishingrod-white:
+      name: '&7Fishingrod White'
+      display: '&f🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.whitefishingrod
+      category: coretags.category.default
+      color: WHITE
+      description:
+        - '&7A white fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-gray:
+      name: '&7Fishingrod Gray'
+      display: '&7🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.grayfishingrod
+      category: coretags.category.default
+      description:
+        - '&7A gray fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-darkgray:
+      name: '&7Fishingrod Darkgray'
+      display: '&8🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgrayfishingrod
+      category: coretags.category.default
+      description:
+        - '&7A dark gray fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-red:
+      name: '&7Fishingrod Red'
+      display: '&c🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.redfishingrod
+      category: coretags.category.default
+      description:
+        - '&7A red fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-darkred:
+      name: '&7Fishingrod Darkred'
+      display: '&4🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkredfishingrod
+      category: coretags.category.default
+      description:
+        - '&7A dark red fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-green:
+      name: '&7Fishingrod Green'
+      display: '&a🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.greenfishingrod
+      category: coretags.category.default
+      description:
+        - '&7A green fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-darkgreen:
+      name: '&7Fishingrod Darkgreen'
+      display: '&2🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.darkgreenfishingrod
+      category: coretags.category.default
+      description:
+        - '&7A dark green fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-blue:
+      name: '&7Fishingrod Blue'
+      display: '&1🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.bluefishingrod
+      category: coretags.category.default
+      description:
+        - '&7A blue fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-lightblue:
+      name: '&7Fishingrod Lightblue'
+      display: '&9🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.lightbluefishingrod
+      category: coretags.category.default
+      description:
+        - '&7A light blue fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-cyan:
+      name: '&7Fishingrod Cyan'
+      display: '&3🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.cyanfishingrod
+      category: coretags.category.default
+      description:
+        - '&7A cyan fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-aqua:
+      name: '&7Fishingrod Aqua'
+      display: '&b🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.aquafishingrod
+      category: coretags.category.default
+      description:
+        - '&7An aqua fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-purple:
+      name: '&7Fishingrod Purple'
+      display: '&5🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.purplefishingrod
+      category: coretags.category.default
+      description:
+        - '&7A purple fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-pink:
+      name: '&7Fishingrod Pink'
+      display: '&d🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.pinkfishingrod
+      category: coretags.category.default
+      description:
+        - '&7A pink fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-orange:
+      name: '&7Fishingrod Orange'
+      display: '&6🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.orangefishingrod
+      category: coretags.category.default
+      description:
+        - '&7An orange fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-gold:
+      name: '&7Fishingrod Gold'
+      display: '&6🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldfishingrod
+      category: coretags.category.default
+      description:
+        - '&7A gold fishing rod'
+        - ''
+      cost: 100
+
+    fishingrod-gold:
+      name: '&7Fishingrod Gold'
+      display: '&6🎣'
+      material: NAME_TAG
+      material-modifier: -1
+      permission: coretags.tag.goldfishingrod
+      category: coretags.category.default
+      description:
+        - '&7A gold fishing rod'
+        - ''
+      cost: 100
